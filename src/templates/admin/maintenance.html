@@ -1,0 +1,667 @@
+{% extends "admin/admin_base.html" %}
+{% load static %}
+
+{% block title %}Maintenance{% endblock %}
+
+{% block font %}
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,500;9..144,700&display=swap" rel="stylesheet">
+{% endblock %}
+
+{% block stylesheet %}
+<style>
+  :root {
+    --maint-ink: #161616;
+    --maint-sky: #edf4fb;
+    --maint-cloud: #f9fcff;
+    --maint-panel: #f5f7fb;
+    --maint-accent: #4f7ca8;
+    --maint-accent-deep: #2f5f8d;
+    --maint-teal: #2f9487;
+    --maint-lilac: #dbe6f6;
+    --maint-muted: rgba(22, 22, 22, 0.68);
+    --maint-border: rgba(22, 22, 22, 0.08);
+    --maint-shadow: rgba(22, 22, 22, 0.13);
+  }
+
+  .maintenance-shell {
+    position: relative;
+    margin: 2.5rem 0 3.5rem;
+    padding: 2.5rem;
+    border-radius: 34px;
+    background:
+      radial-gradient(circle at top right, rgba(79, 124, 168, 0.16), transparent 24%),
+      radial-gradient(circle at bottom left, rgba(47, 148, 135, 0.12), transparent 30%),
+      linear-gradient(135deg, #ffffff 0%, var(--maint-sky) 52%, var(--maint-cloud) 100%);
+    box-shadow: 0 34px 70px -46px var(--maint-shadow);
+    overflow: hidden;
+  }
+
+  .maintenance-shell::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(22, 22, 22, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(22, 22, 22, 0.03) 1px, transparent 1px);
+    background-size: 28px 28px;
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.55), transparent 85%);
+    pointer-events: none;
+  }
+
+  .maintenance-shell > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .maintenance-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.9fr);
+    gap: 1.25rem;
+    align-items: stretch;
+    margin-bottom: 1.4rem;
+  }
+
+  .maintenance-hero-main {
+    padding: 2rem;
+    border-radius: 28px;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.96) 0%, rgba(241, 246, 253, 0.98) 100%);
+    color: var(--maint-ink);
+    border: 1px solid rgba(22, 22, 22, 0.06);
+    box-shadow: 0 22px 48px -38px rgba(63, 91, 128, 0.28);
+  }
+
+  .maintenance-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 0.8rem;
+    border-radius: 999px;
+    background: rgba(79, 124, 168, 0.12);
+    color: var(--maint-accent-deep);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .maintenance-title {
+    margin: 1rem 0 0;
+    font-family: "Fraunces", serif;
+    font-size: clamp(2.4rem, 4vw, 4rem);
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+  }
+
+  .maintenance-subtitle {
+    margin: 1rem 0 0;
+    max-width: 42rem;
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 1.03rem;
+    color: var(--maint-muted);
+  }
+
+  .maintenance-glance {
+    margin-top: 1.3rem;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.8rem;
+  }
+
+  .maintenance-glance-card {
+    padding: 0.95rem 1rem;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(22, 22, 22, 0.06);
+  }
+
+  .maintenance-glance-label {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(22, 22, 22, 0.48);
+  }
+
+  .maintenance-glance-value {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.92rem;
+    color: var(--maint-ink);
+    word-break: break-word;
+  }
+
+  .maintenance-hero-side {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .maintenance-status-card,
+  .maintenance-warning-card {
+    padding: 1.35rem;
+    border-radius: 24px;
+    border: 1px solid var(--maint-border);
+    box-shadow: 0 20px 45px -42px var(--maint-shadow);
+  }
+
+  .maintenance-status-card {
+    background: linear-gradient(180deg, #ffffff 0%, #f5f8fc 100%);
+  }
+
+  .maintenance-warning-card {
+    background: linear-gradient(180deg, rgba(219, 230, 246, 0.75) 0%, rgba(255, 255, 255, 0.96) 100%);
+  }
+
+  .maintenance-side-title {
+    margin: 0 0 0.45rem;
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--maint-ink);
+  }
+
+  .maintenance-side-copy {
+    margin: 0;
+    font-family: "Space Grotesk", sans-serif;
+    color: var(--maint-muted);
+  }
+
+  .maintenance-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-bottom: 0.8rem;
+    padding: 0.45rem 0.75rem;
+    border-radius: 999px;
+    background: rgba(79, 124, 168, 0.12);
+    color: var(--maint-accent-deep);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .maintenance-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.9fr);
+    gap: 1.25rem;
+  }
+
+  .maintenance-card {
+    border-radius: 28px;
+    border: 1px solid var(--maint-border);
+    background: rgba(255, 255, 255, 0.84);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 24px 52px -42px var(--maint-shadow);
+  }
+
+  .maintenance-card-body {
+    padding: 1.5rem;
+  }
+
+  .maintenance-section-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+  }
+
+  .maintenance-section-title {
+    margin: 0;
+    font-family: "Fraunces", serif;
+    font-size: 1.5rem;
+    color: var(--maint-ink);
+  }
+
+  .maintenance-section-copy {
+    margin: 0.35rem 0 0;
+    font-family: "Space Grotesk", sans-serif;
+    color: var(--maint-muted);
+  }
+
+  .maintenance-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.4rem 0.7rem;
+    border-radius: 999px;
+    background: rgba(47, 148, 135, 0.11);
+    color: var(--maint-teal);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+  }
+
+  .maintenance-steps {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .maintenance-step {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.95rem;
+    padding: 1rem;
+    border-radius: 22px;
+    background: linear-gradient(180deg, rgba(246, 237, 224, 0.88) 0%, rgba(255, 255, 255, 0.95) 100%);
+    border: 1px solid rgba(22, 22, 22, 0.06);
+  }
+
+  .maintenance-step-index {
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    background: var(--maint-accent);
+    color: #f7fbff;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.82rem;
+  }
+
+  .maintenance-step-title {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-family: "Space Grotesk", sans-serif;
+    font-weight: 700;
+    color: var(--maint-ink);
+  }
+
+  .maintenance-step-copy {
+    margin: 0;
+    font-family: "Space Grotesk", sans-serif;
+    color: var(--maint-muted);
+  }
+
+  .maintenance-step code {
+    display: inline-block;
+    margin-top: 0.55rem;
+    padding: 0.4rem 0.55rem;
+    border-radius: 10px;
+    background: rgba(79, 124, 168, 0.12);
+    color: var(--maint-accent-deep);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.84rem;
+    word-break: break-word;
+  }
+
+  .maintenance-command-list {
+    display: grid;
+    gap: 0.9rem;
+  }
+
+  .maintenance-command {
+    padding: 1rem;
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(242, 247, 253, 0.96) 100%);
+    color: var(--maint-ink);
+    border: 1px solid rgba(22, 22, 22, 0.07);
+  }
+
+  .maintenance-command strong {
+    display: block;
+    margin-bottom: 0.45rem;
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 0.92rem;
+    color: var(--maint-accent-deep);
+  }
+
+  .maintenance-command code {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.88rem;
+    color: inherit;
+    word-break: break-word;
+  }
+
+  .maintenance-note {
+    margin-top: 1rem;
+    padding: 0.95rem 1rem;
+    border-radius: 16px;
+    background: rgba(79, 124, 168, 0.08);
+    font-family: "Space Grotesk", sans-serif;
+    color: var(--maint-muted);
+  }
+
+  .maintenance-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 1.3rem;
+  }
+
+  .maintenance-btn {
+    border: none;
+    border-radius: 999px;
+    padding: 0.95rem 1.55rem;
+    background: linear-gradient(135deg, var(--maint-accent) 0%, #7ea4cb 100%);
+    color: white;
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 0.96rem;
+    font-weight: 700;
+    box-shadow: 0 24px 42px -26px rgba(79, 124, 168, 0.42);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .maintenance-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 28px 46px -26px rgba(79, 124, 168, 0.5);
+  }
+
+  .maintenance-btn-secondary {
+    border: 1px solid rgba(22, 22, 22, 0.1);
+    border-radius: 999px;
+    padding: 0.95rem 1.35rem;
+    background: white;
+    color: var(--maint-ink);
+    font-family: "Space Grotesk", sans-serif;
+    font-weight: 700;
+  }
+
+  .maintenance-action-note {
+    font-family: "Space Grotesk", sans-serif;
+    color: var(--maint-muted);
+    max-width: 24rem;
+  }
+
+  .maintenance-modal .modal-content {
+    border: none;
+    border-radius: 28px;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at top right, rgba(79, 124, 168, 0.16), transparent 30%),
+      linear-gradient(145deg, #ffffff 0%, #eef4fb 100%);
+    box-shadow: 0 32px 70px -34px rgba(63, 91, 128, 0.28);
+  }
+
+  .maintenance-modal .modal-header,
+  .maintenance-modal .modal-body,
+  .maintenance-modal .modal-footer {
+    border: none;
+    padding-left: 1.6rem;
+    padding-right: 1.6rem;
+  }
+
+  .maintenance-modal .modal-header {
+    padding-top: 1.6rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .maintenance-modal .modal-body {
+    padding-top: 0;
+    padding-bottom: 1rem;
+  }
+
+  .maintenance-modal .modal-footer {
+    padding-top: 0;
+    padding-bottom: 1.5rem;
+    gap: 0.8rem;
+  }
+
+  .maintenance-modal-title {
+    margin: 0;
+    font-family: "Fraunces", serif;
+    font-size: 1.7rem;
+    color: var(--maint-ink);
+  }
+
+  .maintenance-modal-copy {
+    margin: 0;
+    font-family: "Space Grotesk", sans-serif;
+    color: var(--maint-muted);
+  }
+
+  .maintenance-modal-summary {
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: 18px;
+    background: rgba(79, 124, 168, 0.1);
+    color: var(--maint-ink);
+  }
+
+  .maintenance-modal-summary strong {
+    display: block;
+    margin-bottom: 0.45rem;
+    font-family: "Space Grotesk", sans-serif;
+    color: var(--maint-accent-deep);
+  }
+
+  .maintenance-modal-summary code {
+    display: block;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.84rem;
+    color: inherit;
+    word-break: break-word;
+  }
+
+  .maintenance-modal-warning {
+    margin-top: 1rem;
+    padding: 0.95rem 1rem;
+    border-radius: 16px;
+    background: rgba(79, 124, 168, 0.12);
+    font-family: "Space Grotesk", sans-serif;
+    color: var(--maint-accent-deep);
+  }
+
+  @media (max-width: 1100px) {
+    .maintenance-hero,
+    .maintenance-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .maintenance-shell {
+      padding: 1.35rem;
+      border-radius: 24px;
+    }
+
+    .maintenance-hero-main,
+    .maintenance-card-body {
+      padding: 1.2rem;
+    }
+
+    .maintenance-glance {
+      grid-template-columns: 1fr;
+    }
+
+    .maintenance-actions {
+      align-items: stretch;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="maintenance-shell">
+  <section class="maintenance-hero">
+    <div class="maintenance-hero-main">
+      <span class="maintenance-kicker">Voie de deploiement</span>
+      <h1 class="maintenance-title">Maintenance</h1>
+      <p class="maintenance-subtitle">
+        Cette page reste volontairement etroite : une seule sequence de deploiement, un suivi clair en direct,
+        et aucune execution arbitraire de commandes.
+      </p>
+
+      <div class="maintenance-glance">
+        <div class="maintenance-glance-card">
+          <span class="maintenance-glance-label">Depot</span>
+          <span class="maintenance-glance-value">{{ repo_dir }}</span>
+        </div>
+        <div class="maintenance-glance-card">
+          <span class="maintenance-glance-label">Service web</span>
+          <span class="maintenance-glance-value">{{ service_name }}</span>
+        </div>
+        <div class="maintenance-glance-card">
+          <span class="maintenance-glance-label">Worker Celery</span>
+          <span class="maintenance-glance-value">{{ celery_service_name }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="maintenance-hero-side">
+      <div class="maintenance-status-card">
+        <div class="maintenance-badge">superutilisateur</div>
+        <h2 class="maintenance-side-title">Cadre d'execution</h2>
+        <p class="maintenance-side-copy">
+          La sequence est limitee a des commandes connues, s'arrete a la premiere erreur, et conserve son etat dans Redis
+          pour que la page de suivi survive aux redemarrages.
+        </p>
+      </div>
+
+      <div class="maintenance-warning-card">
+        <h2 class="maintenance-side-title">Avant de lancer</h2>
+        <p class="maintenance-side-copy">
+          Verifiez que le depot peut etre mis a jour sans conflit, que les regles sudoers sont en place, et que personne
+          n'est en train d'intervenir manuellement sur le VPS.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <div class="maintenance-grid">
+    <section class="maintenance-card">
+      <div class="maintenance-card-body">
+        <div class="maintenance-section-head">
+          <div>
+            <h2 class="maintenance-section-title">Sequence de deploiement</h2>
+            <p class="maintenance-section-copy">Les etapes s'executent dans l'ordre et la sequence s'arrete immediatement a la premiere erreur.</p>
+          </div>
+          <span class="maintenance-chip">ordre fixe</span>
+        </div>
+
+        <div class="maintenance-steps">
+          {% for item in command_preview %}
+            <article class="maintenance-step">
+              <div class="maintenance-step-index">{{ forloop.counter }}</div>
+              <div>
+                <strong class="maintenance-step-title">{{ item.label }}</strong>
+                <p class="maintenance-step-copy">
+                  {% if item.label == "Mise a jour Git" %}
+                    Met a jour le depot de deploiement en fast-forward, sans ouvrir d'editeur ni attendre une fusion interactive.
+                  {% elif item.label == "Rechargement systemd" %}
+                    Recharge les definitions systemd avant tout redemarrage de service.
+                  {% elif item.label == "Redemarrage du backend" %}
+                    Relance le service backend expose par Django puis attend qu'il revienne proprement.
+                  {% elif item.label == "Verification du backend" %}
+                    Interroge le backend jusqu'a ce qu'il reponde <code>active</code>.
+                  {% elif item.label == "Redemarrage du worker Celery" %}
+                    Confie le redemarrage du worker a une unite systemd detachee afin que le suivi reste visible apres la coupure.
+                  {% else %}
+                    Verifie que le worker Celery est revenu en etat <code>active</code> avant de considerer le deploiement termine.
+                  {% endif %}
+                </p>
+                <code>{{ item.command }}</code>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+
+        <form id="maintenance-form" method="post" class="maintenance-actions">
+          {% csrf_token %}
+          <label class="maintenance-action-note" for="branch">
+            Branche cible
+            <select
+              id="branch"
+              name="branch"
+              class="form-control mt-2"
+            >
+              {% for branch in branch_options %}
+                <option value="{{ branch }}"{% if branch == selected_branch %} selected{% endif %}>{{ branch }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <button class="maintenance-btn" type="button" data-bs-toggle="modal" data-bs-target="#maintenanceConfirmModal">
+            Mettre a jour et redemarrer
+          </button>
+          <span class="maintenance-action-note">
+            Une confirmation est demandee avant le lancement, pour eviter tout declenchement accidentel.
+          </span>
+        </form>
+        {% if error %}
+          <div class="maintenance-note">{{ error }}</div>
+        {% endif %}
+      </div>
+    </section>
+
+    <aside class="maintenance-card">
+      <div class="maintenance-card-body">
+        <div class="maintenance-section-head">
+          <div>
+            <h2 class="maintenance-section-title">Apercu d'execution</h2>
+            <p class="maintenance-section-copy">Commandes exactes actuellement configurees par les settings Django en cours.</p>
+          </div>
+          <span class="maintenance-chip">config active</span>
+        </div>
+
+        <div class="maintenance-command-list">
+          {% for item in command_preview %}
+            <div class="maintenance-command">
+              <strong>{{ item.label }}</strong>
+              <code>{{ item.command }}</code>
+            </div>
+          {% endfor %}
+        </div>
+
+        <div class="maintenance-note">
+          Prerequis host : l'utilisateur du service Celery doit avoir les droits d'ecriture sur le depot ainsi que des droits sudo
+          limites pour <code>systemctl</code> et <code>systemd-run</code>.
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<div class="modal fade maintenance-modal" id="maintenanceConfirmModal" tabindex="-1" aria-labelledby="maintenanceConfirmModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h2 class="maintenance-modal-title" id="maintenanceConfirmModalLabel">Confirmer le deploiement</h2>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="maintenance-modal-copy">
+          Cette action va recuperer la derniere revision du depot, recharger systemd, redemarrer <code>{{ service_name }}</code>,
+          puis relancer <code>{{ celery_service_name }}</code> via le suivi detache.
+        </p>
+        <p class="maintenance-modal-copy">
+          Si une branche cible est renseignee, le serveur tentera d'abord <code>git fetch origin</code> puis <code>git switch</code>.
+          Si cette branche ne redemarre pas correctement le backend, une intervention SSH peut etre necessaire.
+        </p>
+        <div class="maintenance-modal-summary">
+          <strong>Cible</strong>
+          <code>{{ repo_dir }}</code>
+          <code>{{ service_name }}</code>
+          <code>{{ celery_service_name }}</code>
+        </div>
+        <div class="maintenance-modal-warning">
+          Continuez seulement si une courte interruption est acceptable et si ce VPS doit passer a la revision distante actuelle.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="maintenance-btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button id="maintenance-confirm-submit" type="button" class="maintenance-btn">Confirmer et redemarrer</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("maintenance-form");
+    const confirmButton = document.getElementById("maintenance-confirm-submit");
+
+    confirmButton.addEventListener("click", function () {
+      confirmButton.disabled = true;
+      confirmButton.textContent = "Lancement...";
+      form.submit();
+    });
+  });
+</script>
+{% endblock %}

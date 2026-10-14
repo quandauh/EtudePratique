@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+{% block navbar %}
+  {% if request.user.is_authenticated and request.user.is_staff %}
+    {% include 'admin/_partials/_navbar.html' %}
+  {% else %}
+    {{ block.super }}
+  {% endif %}
+{% endblock %} 

@@ -1,0 +1,389 @@
+{% extends "admin/admin_base.html" %}
+{% load static %}
+
+{% block title %}Moulinette{% endblock %}
+
+{% block font %}
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600&family=Fraunces:opsz,wght@9..144,400;9..144,600&display=swap" rel="stylesheet">
+{% endblock %}
+
+{% block stylesheet %}
+<style>
+  :root {
+    --moulinette-ink: #1b1b1b;
+    --moulinette-accent: #f18a7e;
+    --moulinette-accent-dark: #c06e64;
+    --moulinette-sky: #ffe3dd;
+    --moulinette-foam: #f8f2ec;
+    --moulinette-shadow: rgba(27, 27, 27, 0.12);
+  }
+
+  .moulinette-shell {
+    position: relative;
+    margin: 2.5rem 0 3.5rem;
+    padding: 2.5rem;
+    border-radius: 28px;
+    background: radial-gradient(circle at top left, #fff3ef 0%, #fff 55%, var(--moulinette-foam) 100%);
+    box-shadow: 0 30px 60px -40px var(--moulinette-shadow);
+    overflow: hidden;
+  }
+
+  .moulinette-shell::before {
+    content: "";
+    position: absolute;
+    top: -120px;
+    right: -120px;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(241, 138, 126, 0.35), transparent 70%);
+    filter: blur(2px);
+    z-index: 0;
+  }
+
+  .moulinette-header {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: flex-end;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .moulinette-title {
+    font-family: "Fraunces", serif;
+    font-size: 2.5rem;
+    color: var(--moulinette-ink);
+    margin: 0;
+  }
+
+  .moulinette-subtitle {
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 1rem;
+    color: rgba(27, 27, 27, 0.7);
+    margin: 0.25rem 0 0;
+  }
+
+  .moulinette-grid {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 1rem;
+  }
+
+  .moulinette-card {
+    background: white;
+    border-radius: 18px;
+    padding: 1rem 1.25rem;
+    box-shadow: 0 16px 30px -22px var(--moulinette-shadow);
+  }
+
+  .moulinette-card label {
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: rgba(27, 27, 27, 0.65);
+    margin-bottom: 0.35rem;
+  }
+
+  .moulinette-card input {
+    font-family: "Space Grotesk", sans-serif;
+    border-radius: 12px;
+    border: 1px solid rgba(27, 27, 27, 0.08);
+    background: #fff;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .moulinette-actions {
+    margin-top: 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  .moulinette-btn {
+    font-family: "Space Grotesk", sans-serif;
+    border: none;
+    border-radius: 999px;
+    background: var(--moulinette-accent);
+    color: #1b1b1b;
+    padding: 0.75rem 2rem;
+    font-weight: 600;
+    box-shadow: 0 14px 26px -18px var(--moulinette-accent-dark);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .moulinette-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 30px -18px var(--moulinette-accent-dark);
+  }
+
+  .moulinette-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: "Space Grotesk", sans-serif;
+    color: rgba(27, 27, 27, 0.7);
+  }
+
+  .moulinette-note {
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 0.85rem;
+    color: rgba(27, 27, 27, 0.55);
+    margin-top: 1rem;
+  }
+
+  .moulinette-error {
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    background: rgba(255, 97, 97, 0.15);
+    color: #7a2323;
+    font-family: "Space Grotesk", sans-serif;
+  }
+
+  .info-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    width: 1rem;
+    height: 1rem;
+    margin-left: 0.25rem;
+    border-radius: 50%;
+    border: 1px solid rgba(27, 27, 27, 0.35);
+    color: rgba(27, 27, 27, 0.7);
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1;
+    text-transform: none;
+    cursor: help;
+  }
+
+  .info-icon:focus {
+    outline: 2px solid rgba(241, 138, 126, 0.5);
+    outline-offset: 2px;
+  }
+
+  .info-tooltip {
+    position: fixed;
+    z-index: 3000;
+    max-width: 280px;
+    padding: 0.5rem 0.65rem;
+    border-radius: 6px;
+    background: #1b1b1b;
+    color: #fff;
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 0.8rem;
+    font-weight: 400;
+    line-height: 1.25;
+    text-transform: none;
+    letter-spacing: 0;
+    box-shadow: 0 12px 28px rgba(27, 27, 27, 0.22);
+    pointer-events: none;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="moulinette-shell">
+  <div class="moulinette-header">
+    <div>
+      <h1 class="moulinette-title">Moulinette</h1>
+      <p class="moulinette-subtitle">Effectue une simulation complète de test de performance avec des mesures en temps réel.</p>
+    </div>
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="moulinette-grid">
+      <div class="moulinette-card form-group">
+        <label for="num_questions">Questions par tour <span class="info-icon" tabindex="0" data-info="Nombre total de questions simulées pour chaque personnage, arbre puis questions complémentaires.">i</span></label>
+        <input id="num_questions" name="num_questions" type="number" min="1" value="{{ defaults.num_questions }}" class="form-control" required>
+      </div>
+      <div class="moulinette-card form-group">
+        <label for="min_games">Min parties <span class="info-icon" tabindex="0" data-info="Nombre minimal de parties jouées pour inclure un personnage dans le benchmark.">i</span></label>
+        <input id="min_games" name="min_games" type="number" min="0" value="{{ defaults.min_games }}" class="form-control">
+      </div>
+      <div class="moulinette-card form-group">
+        <label for="seed">Graine <span class="info-icon" tabindex="0" data-info="Valeur utilisée pour rendre le tirage aléatoire reproductible.">i</span></label>
+        <input id="seed" name="seed" type="number" value="{{ defaults.seed }}" class="form-control">
+      </div>
+      <div class="moulinette-card form-group">
+        <label for="limit">Limite de personnages <span class="info-icon" tabindex="0" data-info="Nombre maximum de personnages testés. Vide pour tout tester.">i</span></label>
+        <input id="limit" name="limit" type="number" min="1" value="{{ defaults.limit }}" class="form-control" placeholder="(optionnel)">
+      </div>
+      <div class="moulinette-card form-group">
+        <label for="top_k">Top-k <span class="info-icon" tabindex="0" data-info="Le résultat est compté dans le top-k si le personnage attendu apparaît parmi les k premières propositions.">i</span></label>
+        <input id="top_k" name="top_k" type="number" min="1" value="{{ defaults.top_k }}" class="form-control">
+      </div>
+      <div class="moulinette-card form-group">
+        <label for="min_ratio">Ratio minimal <span class="info-icon" tabindex="0" data-info="Seuil de dominance oui/non nécessaire pour considérer une réponse comme fiable.">i</span></label>
+        <input id="min_ratio" name="min_ratio" type="number" step="0.01" min="0" max="1" value="{{ defaults.min_ratio }}" class="form-control">
+      </div>
+      <div class="moulinette-card form-group">
+        <label for="max_mistakes">Erreurs max <span class="info-icon" tabindex="0" data-info="Nombre maximum de réponses volontairement inversées pendant une simulation.">i</span></label>
+        <input id="max_mistakes" name="max_mistakes" type="number" min="0" value="{{ defaults.max_mistakes }}" class="form-control">
+      </div>
+      <div class="moulinette-card form-group">
+        <label for="max_skips">Passes max <span class="info-icon" tabindex="0" data-info="Nombre maximum de réponses transformées en passe pendant une simulation.">i</span></label>
+        <input id="max_skips" name="max_skips" type="number" min="0" value="{{ defaults.max_skips }}" class="form-control">
+      </div>
+      <!--<div class="moulinette-card form-group" style="grid-column: span 2;">
+        <label for="item_ids">Item ids (comma-separated)</label>
+        <input id="item_ids" name="item_ids" type="text" value="{{ defaults.item_ids }}" class="form-control" placeholder="e.g. 12, 45, 89">
+      </div>-->
+    </div>
+
+    <div class="moulinette-actions">
+      <button class="moulinette-btn" type="submit">Lancer le benchmark</button>
+      <label class="moulinette-toggle">
+        <input type="checkbox" name="use_fast_search" {% if defaults.use_fast_search %}checked{% endif %}>
+        Utiliser la recherche rapide (ne reflète pas automatiquement les changements futurs du jeu)
+      </label>
+      <label class="moulinette-toggle">
+        <input type="checkbox" name="include_autoencoder" {% if defaults.include_autoencoder %}checked{% endif %}>
+        Comparer les vecteurs compressés dans le même run
+      </label>
+    </div>
+
+    {% if error %}
+      <div class="moulinette-error">{{ error }}</div>
+    {% endif %}
+  </form>
+</div>
+
+<h2>Historique des moulinettes</h2>
+{% if moulinette_runs %}
+  <div class="table-responsive mb-4">
+    <table class="table table-sm align-middle">
+      <thead>
+        <tr>
+          <th>Date <span class="info-icon" tabindex="0" data-info="Date et heure de lancement du benchmark.">i</span></th>
+          <th>Utilisateur <span class="info-icon" tabindex="0" data-info="Compte admin qui a lancé le benchmark.">i</span></th>
+          <th>Statut <span class="info-icon" tabindex="0" data-info="Dernier état enregistré pour le run.">i</span></th>
+          <th>Traités <span class="info-icon" tabindex="0" data-info="Nombre de personnages évalués sur le total prévu.">i</span></th>
+          <th>TF-IDF <span class="info-icon" tabindex="0" data-info="Part des personnages trouvés en première proposition avec les vecteurs TF-IDF.">i</span></th>
+          <th>TF-IDF Top 5 <span class="info-icon" tabindex="0" data-info="Part des personnages présents dans les cinq premières propositions TF-IDF.">i</span></th>
+          <th>Compressés <span class="info-icon" tabindex="0" data-info="Part des personnages trouvés en première proposition avec les vecteurs autoencodeur.">i</span></th>
+          <th>Compressés Top 5 <span class="info-icon" tabindex="0" data-info="Part des personnages présents dans les cinq premières propositions autoencodeur.">i</span></th>
+          <th>Durée <span class="info-icon" tabindex="0" data-info="Temps total mesuré pour le benchmark.">i</span></th>
+          <th>Dataset <span class="info-icon" tabindex="0" data-info="Taille du dataset testé et indication si le dataset provient d'un run rejoué.">i</span></th>
+          <th>Configuration <span class="info-icon" tabindex="0" data-info="Résumé des paramètres utilisés pour ce run.">i</span></th>
+          <th>Actions <span class="info-icon" tabindex="0" data-info="Rejouer le même dataset ou supprimer ce résultat.">i</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for run in moulinette_runs %}
+          <tr>
+            <td>{{ run.created_at|date:"d/m/Y H:i" }}</td>
+            <td>{{ run.created_by.username|default:"-" }}</td>
+            <td>{{ run.status }}</td>
+            <td>{{ run.processed }} / {{ run.total }}</td>
+            <td>{{ run.accuracy|floatformat:3 }}</td>
+            <td>{{ run.top_5_accuracy|floatformat:3 }}</td>
+            {% with ae=run.result.algorithm_results.autoencoder %}
+              <td>
+                {% if ae %}
+                  {% if ae.available %}{{ ae.accuracy|floatformat:3 }}{% else %}Indispo{% endif %}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+              <td>
+                {% if ae %}
+                  {% if ae.available %}{{ ae.top_5_accuracy|floatformat:3 }}{% else %}-{% endif %}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+            {% endwith %}
+            <td>{{ run.elapsed_seconds|floatformat:1 }} s</td>
+            <td>
+              <code>{{ run.result.dataset_size|default:run.total }}</code>
+              {% if run.config.dataset_source == "reused" %}
+                <span>rejoué</span>
+              {% endif %}
+            </td>
+            <td>
+              <code>
+                q={{ run.config.num_questions }},
+                top={{ run.config.top_k }},
+                fast={{ run.config.use_fast_search }},
+                ae={{ run.config.include_autoencoder }}
+              </code>
+            </td>
+            <td>
+              {% if run.result.dataset %}
+                <form method="post" action="{% url 'admin:rerun_moulinette_run' run.id %}" class="mb-1">
+                  {% csrf_token %}
+                  <button class="btn btn-sm btn-outline-primary" type="submit">Rejouer</button>
+                </form>
+              {% endif %}
+              <form method="post" action="{% url 'admin:delete_moulinette_run' run.id %}">
+                {% csrf_token %}
+                <button class="btn btn-sm btn-outline-danger" type="submit">Supprimer</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <p>Aucun résultat permanent de moulinette pour le moment.</p>
+{% endif %}
+
+<p>La moulinette permet de simuler un test de performance complet du système de recommandation. 
+  Elle génère des parties aléatoires et mesure les performances du système en temps réel.</p>
+<h3>Paramètres</h3>
+<p>Voici les paramètres que l'on peut régler pour le benchmark :</p>
+<lu>
+  <li>Questions par tour : Nombre de questions à poser à chaque tour de simulation.</li>
+  <li>Min parties : Nombre minimum de parties à générer pour le benchmark.</li>
+  <li>Graine : Graine utilisée pour la génération aléatoire des parties.</li>
+  <li>Limite de personnages : Limite du nombre de personnages à inclure dans chaque partie.</li>
+  <li>Top-k : Nombre de suggestions à considérer pour chaque question.</li>
+  <li>Ratio minimal : Ratio minimal d'occurrences d'une réponse pour qu'elle soit considérée comme valide.</li>
+</lu>
+{% endblock %}
+
+{% block script %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var tooltip = document.createElement("div");
+    tooltip.className = "info-tooltip";
+    tooltip.hidden = true;
+    document.body.appendChild(tooltip);
+
+    function positionTooltip(target) {
+      var rect = target.getBoundingClientRect();
+      tooltip.style.left = Math.max(12, Math.min(rect.left, window.innerWidth - tooltip.offsetWidth - 12)) + "px";
+      tooltip.style.top = Math.max(12, Math.min(rect.bottom + 8, window.innerHeight - tooltip.offsetHeight - 12)) + "px";
+    }
+
+    function showTooltip(target) {
+      var text = target.getAttribute("data-info");
+      if (!text) {
+        return;
+      }
+      tooltip.textContent = text;
+      tooltip.hidden = false;
+      positionTooltip(target);
+    }
+
+    function hideTooltip() {
+      tooltip.hidden = true;
+    }
+
+    document.querySelectorAll(".info-icon").forEach(function (icon) {
+      icon.addEventListener("mouseenter", function () { showTooltip(icon); });
+      icon.addEventListener("focus", function () { showTooltip(icon); });
+      icon.addEventListener("mouseleave", hideTooltip);
+      icon.addEventListener("blur", hideTooltip);
+    });
+  });
+</script>
+{% endblock %}

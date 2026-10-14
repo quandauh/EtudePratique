@@ -1,0 +1,34 @@
+<div id="modal-compute-2" class="modal fade" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Paramètres Suggestions</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="autoEncoderForm" action="{% url 'admin:compute_suggestions' %}" method="post">
+        {% csrf_token %}
+
+        <div class="form-group  mt-3">
+          <label for="input3">Valeur de seuil</label>
+          <input type="number" id="input3" name="input3" class="form-control" value="0.90" step="0.01">
+        </div>
+
+        <div class="form-group  mt-3">
+          <label for="input4">Nombre de parties minimum</label>
+          <input type="number" id="input4" name="input4" class="form-control" value="5" step="1">
+        </div>
+
+        <div class="form-group  mt-3">
+          <label for="input4">Nombre de parties maximum</label>
+          <input type="number" id="input5" name="input5" class="form-control" value="20" step="1">
+        </div>
+
+        <button class="btn btn-primary mt-3" type="submit">Calculer</button>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

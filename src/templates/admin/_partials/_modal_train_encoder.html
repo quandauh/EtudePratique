@@ -1,0 +1,34 @@
+<div id="modal-train" class="modal fade" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Paramètres Autoencodeur</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+          </button>
+      </div>
+      <div class="modal-body">
+        <form id="autoEncoderForm" action="{% url 'admin:train_auto_encoder' %}" method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="input1">Nombre d'itérations <span class="info-icon" tabindex="0" data-info="Nombre d'epochs à exécuter. Chaque epoch fait passer le modèle sur le jeu de données d'entraînement.">i</span></label>
+            <input type="number" id="input1" name="input1" class="form-control" value="{{ autoencoder_defaults.iterations|default:100 }}">
+        </div>
+
+        <div class="form-group">
+            <label for="input3">Taille couche cachée <span class="info-icon" tabindex="0" data-info="Nombre de neurones dans la couche compressée. Une valeur plus petite force une représentation plus compacte.">i</span></label>
+            <input type="number" id="input3" name="input3" class="form-control" value="{{ autoencoder_defaults.hidden_size|default:25 }}">
+        </div>
+
+        <div class="form-group mt-3">
+            <label for="input2">Nom de base du fichier de sortie <span class="info-icon" tabindex="0" data-info="Nom de départ pour les poids générés. L'application ajoute automatiquement un suffixe unique avant archivage.">i</span></label>
+            <input type="text" id="input2" name="input2" class="form-control" value="{{ autoencoder_defaults.output_file|default:'auto_encoder_weights.h5' }}">
+            <small class="form-text text-muted">Un suffixe unique est ajouté automatiquement à chaque entraînement.</small>
+        </div>
+
+        <button class="btn btn-primary mt-3" type="submit">Entraîner</button>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

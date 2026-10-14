@@ -1,0 +1,31 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<body>
+    <h1>Suggestions sur les questions discriminantes</h1>
+    <text>Pour chaque personnage, on identifie la question la plus discriminante, et on regroupe les personnages ayant la même. On prend le premier groupe et on regarde ensuite les nb questions les plus pertinentes de chaque personnage. On regarde pour chaque personnage du groupe si il.elle a déjà répondu, si non, on fait une suggestion de réponse (oui ou non) en fonction des réponses des autres membres du groupe.</text>
+    <h3>Paramètres</h3>
+    <text>On peut régler les paramètres suivants :
+    <br />
+    - Le nombre nb de questions à prendre en compte pour les suggestions
+    <br />
+    - Le nombre max de suggestions à générer
+    <br />
+    - La proportion de réponses communes par groupe pour faire une suggestion
+    <br />
+    <br />
+    </text>
+    <form action="." class="d-flex flex-column align-items-center" method="post">
+        {% csrf_token %}
+        <label for="num_questions" id="label_num">Nombre de questions :</label>
+        <input min="1" id="num_questions" name="num_questions" required type="number" value="5" aria-label="Nombre de questions à afficher">
+        <label for="num_suggestions" id="label_num">Nombre de suggestions :</label>
+        <input min="1" id="num_suggestions" name="num_suggestions" required type="number" value="10" aria-label="Nombre de personnages proches à montrer">
+        <label for="alpha" id="label_num">Proportion de réponses communes par groupe :</label>
+        <input step="0.01" min="0.01" max="1" id="alpha" name="alpha" required type="number" value="0.5" aria-label="Proportion de personnages qui doivent avoir la même réponse">
+        <button class="btn btn-primary mt-3" type="submit">Valider</button>
+      </form>
+</body>
+{% endblock %}

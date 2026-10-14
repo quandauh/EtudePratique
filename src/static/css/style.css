@@ -1,0 +1,87 @@
+:root {
+    --bs-body-bg: #F5F5F5;
+    --bs-body-bg-rgb: 245, 245, 245;
+    --bs-primary: #f18a7e;
+    --bs-primary-accent: #C06E64;
+    --bs-primary-rgb: 241, 138, 126;
+    --bs-body-font-family: "Itim", cursive;
+    --bs-btn-font-family: var(--bs-body-font-family);
+    --bs-border-radius-lg: 1.5rem;
+}
+
+.btn-primary {
+    --bs-btn-color: black;
+    --bs-btn-bg: var(--bs-primary);
+    --bs-btn-border-color: var(--bs-primary);
+    --bs-btn-hover-color: black;
+    --bs-btn-hover-bg: var(--bs-primary-accent);
+    --bs-btn-hover-border-color: var(--bs-primary-accent);
+    --bs-btn-focus-shadow-rgb: 49, 132, 253;
+    --bs-btn-active-color: black;
+    --bs-btn-active-bg: var(--bs-primary);
+    --bs-btn-active-border-color: var(--bs-primary);
+    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+    --bs-btn-disabled-color: black;
+    --bs-btn-disabled-bg: var(--bs-primary);
+    --bs-btn-disabled-border-color: var(--bs-primary);
+}
+
+.btn-lg {
+    --bs-btn-font-size: 1.5rem;
+}
+
+.flex-center {
+    /* Centre une div horizontalement et verticalement */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    height: 75vh;
+}
+
+.vh-60 {
+    /* Contrôle l'espacement des images */
+    height: 60vh;
+}
+
+.vw-90 {
+    /* Taille de la fenêtre définie à 90% de la taille de l'écran */
+    width: 90vw;
+}
+
+.h-1l {
+    /* Hauteur de 1 ligne */
+    height: 1rem;
+}
+
+.h-4l {
+    /* Hauteur de 4 lignes */
+    height: 4rem;
+}
+
+.h-6l {
+    /* Hauteur de 6 lignes */
+    height: 6rem;
+}
+
+.p-08 {
+    padding: 0.8rem;
+}
+
+.d-inline-table {
+    display: inline-table;
+}
+
+.text-justify {
+    text-align: justify;
+}
+
+.line-wrap {
+    white-space: pre-line;
+}
+
+#label_title::after, #label_name::after,
+#label_username::after, #label_password::after {
+    background-color: var(--bs-secondary-bg-subtle)
+}

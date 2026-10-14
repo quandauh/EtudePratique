@@ -1,0 +1,22 @@
+[Unit]
+Description=uWSGI Devinsa
+After=nginx.service
+Wants=nginx.service
+
+[Service]
+User=www-data
+Group=vps_devinsa
+ExecStart=/var/www/devinsa/.venv/bin/uwsgi --ini /var/www/devinsa/conf/devinsa_uwsgi.ini
+ExecStartPost=-curl -sSLk https://devinsa-clone.insa-rennes.fr
+WorkingDirectory=/var/www/devinsa/src
+# Create /run/wsgi directory
+RuntimeDirectory=uwsgi
+RuntimeDirectoryMode=775
+Restart=always
+KillSignal=SIGINT
+Type=notify
+StandardError=journal
+NotifyAccess=all
+
+[Install]
+WantedBy=multi-user.target

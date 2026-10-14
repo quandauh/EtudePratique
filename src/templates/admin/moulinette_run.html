@@ -1,0 +1,430 @@
+{% extends "admin/admin_base.html" %}
+{% load static %}
+
+{% block title %}Moulinette en cours{% endblock %}
+
+{% block font %}
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600&family=Fraunces:opsz,wght@9..144,400;9..144,600&display=swap" rel="stylesheet">
+{% endblock %}
+
+{% block stylesheet %}
+<style>
+  :root {
+    --moulinette-ink: #1b1b1b;
+    --moulinette-accent: #f18a7e;
+    --moulinette-accent-dark: #c06e64;
+    --moulinette-foam: #fff6f2;
+    --moulinette-shadow: rgba(27, 27, 27, 0.12);
+  }
+
+  .moulinette-run {
+    margin: 2.5rem 0 3.5rem;
+    padding: 2.5rem;
+    border-radius: 28px;
+    background: linear-gradient(135deg, #fff9f7 0%, #fef4f1 48%, #fff 100%);
+    box-shadow: 0 30px 60px -40px var(--moulinette-shadow);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .moulinette-run::after {
+    content: "";
+    position: absolute;
+    bottom: -120px;
+    left: -120px;
+    width: 280px;
+    height: 280px;
+    background: radial-gradient(circle, rgba(241, 138, 126, 0.4), transparent 70%);
+    filter: blur(3px);
+    z-index: 0;
+  }
+
+  .moulinette-headline {
+    position: relative;
+    z-index: 1;
+    margin-bottom: 1.5rem;
+  }
+
+  .moulinette-headline h1 {
+    font-family: "Fraunces", serif;
+    font-size: 2.25rem;
+    color: var(--moulinette-ink);
+    margin: 0 0 0.35rem;
+  }
+
+  .moulinette-headline p {
+    font-family: "Space Grotesk", sans-serif;
+    color: rgba(27, 27, 27, 0.7);
+    margin: 0;
+  }
+
+  .moulinette-progress {
+    position: relative;
+    z-index: 1;
+    margin: 1.5rem 0;
+  }
+
+  .progress {
+    height: 16px;
+    border-radius: 999px;
+    background: #f1e4df;
+    overflow: hidden;
+  }
+
+  .progress-bar {
+    background: linear-gradient(90deg, var(--moulinette-accent) 0%, #ffb8aa 100%);
+  }
+
+  .moulinette-stats {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+  }
+
+  .stat-card {
+    background: white;
+    border-radius: 18px;
+    padding: 1rem 1.25rem;
+    box-shadow: 0 16px 30px -22px var(--moulinette-shadow);
+    min-height: 110px;
+  }
+
+  .stat-title {
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(27, 27, 27, 0.55);
+    margin-bottom: 0.5rem;
+  }
+
+  .stat-value {
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--moulinette-ink);
+  }
+
+  .stat-sub {
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 0.85rem;
+    color: rgba(27, 27, 27, 0.6);
+  }
+
+  .moulinette-config {
+    position: relative;
+    z-index: 1;
+    margin-top: 1.75rem;
+    padding: 1rem 1.25rem;
+    border-radius: 18px;
+    background: var(--moulinette-foam);
+    font-family: "Space Grotesk", sans-serif;
+    color: rgba(27, 27, 27, 0.7);
+  }
+
+  .moulinette-config span {
+    font-weight: 600;
+    color: var(--moulinette-ink);
+  }
+
+  .moulinette-comparison {
+    position: relative;
+    z-index: 1;
+    margin-top: 1.5rem;
+    background: white;
+    border-radius: 18px;
+    padding: 1rem 1.25rem;
+    box-shadow: 0 16px 30px -22px var(--moulinette-shadow);
+  }
+
+  .moulinette-comparison table {
+    margin: 0;
+    font-family: "Space Grotesk", sans-serif;
+  }
+
+  .moulinette-comparison th {
+    color: rgba(27, 27, 27, 0.55);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .moulinette-current {
+    font-family: "Space Grotesk", sans-serif;
+    margin-top: 0.75rem;
+    color: rgba(27, 27, 27, 0.7);
+  }
+
+  .moulinette-done {
+    animation: pop 0.5s ease-out;
+  }
+
+  .info-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    width: 1rem;
+    height: 1rem;
+    margin-left: 0.25rem;
+    border-radius: 50%;
+    border: 1px solid rgba(27, 27, 27, 0.35);
+    color: rgba(27, 27, 27, 0.7);
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1;
+    text-transform: none;
+    letter-spacing: 0;
+    cursor: help;
+  }
+
+  .info-icon:focus {
+    outline: 2px solid rgba(241, 138, 126, 0.5);
+    outline-offset: 2px;
+  }
+
+  .info-tooltip {
+    position: fixed;
+    z-index: 3000;
+    max-width: 280px;
+    padding: 0.5rem 0.65rem;
+    border-radius: 6px;
+    background: #1b1b1b;
+    color: #fff;
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 0.8rem;
+    font-weight: 400;
+    line-height: 1.25;
+    text-transform: none;
+    letter-spacing: 0;
+    box-shadow: 0 12px 28px rgba(27, 27, 27, 0.22);
+    pointer-events: none;
+  }
+
+  @keyframes pop {
+    0% { transform: scale(0.98); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="moulinette-run">
+  <div class="moulinette-headline">
+    <h1>Moulinette en cours</h1>
+    <p>Les statistiques se mettent a jour en direct pendant l'execution.</p>
+  </div>
+
+  <div class="moulinette-progress">
+    <div class="progress">
+      <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%"></div>
+    </div>
+    <div id="progress-bar-message" class="moulinette-current">Demarrage du benchmark...</div>
+  </div>
+
+  <div class="moulinette-stats">
+    <div class="stat-card">
+      <div class="stat-title">Traites <span class="info-icon" tabindex="0" data-info="Nombre de personnages déjà évalués sur le total prévu.">i</span></div>
+      <div class="stat-value" id="stat-processed">0</div>
+      <div class="stat-sub" id="stat-total">sur 0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-title">Precision <span class="info-icon" tabindex="0" data-info="Part des personnages trouvés en première proposition pour l'algorithme principal.">i</span></div>
+      <div class="stat-value" id="stat-accuracy">0.0000</div>
+      <div class="stat-sub">Top-k : <span id="stat-topk">0.0000</span> · Top 5 : <span id="stat-top5">0.0000</span></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-title">Corrects <span class="info-icon" tabindex="0" data-info="Nombre de personnages trouvés exactement en première proposition.">i</span></div>
+      <div class="stat-value" id="stat-correct">0</div>
+      <div class="stat-sub">Incorrects : <span id="stat-incorrect">0</span></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-title">Non trouves <span class="info-icon" tabindex="0" data-info="Nombre de cas où aucune proposition exploitable n'a été retournée.">i</span></div>
+      <div class="stat-value" id="stat-notfound">0</div>
+      <div class="stat-sub">Profondeur moyenne : <span id="stat-depth">0.00</span></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-title">Questions moyennes <span class="info-icon" tabindex="0" data-info="Nombre moyen de réponses utilisées pour évaluer un personnage.">i</span></div>
+      <div class="stat-value" id="stat-questions">0.00</div>
+      <div class="stat-sub">En cours : <span id="stat-current">-</span></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-title">Temps estime <span class="info-icon" tabindex="0" data-info="Estimation du temps restant calculée à partir du rythme actuel.">i</span></div>
+      <div class="stat-value" id="stat-eta">-</div>
+      <div class="stat-sub">Ecoule : <span id="stat-elapsed">-</span> · Total : <span id="stat-estimated-total">-</span></div>
+    </div>
+  </div>
+
+  <div class="moulinette-comparison">
+    <table class="table table-sm align-middle">
+      <thead>
+        <tr>
+          <th>Vecteurs <span class="info-icon" tabindex="0" data-info="Type de représentation utilisé par l'algorithme testé.">i</span></th>
+          <th>Traites <span class="info-icon" tabindex="0" data-info="Nombre de personnages déjà évalués pour cette ligne.">i</span></th>
+          <th>Trouve <span class="info-icon" tabindex="0" data-info="Taux de personnages trouvés en première proposition.">i</span></th>
+          <th>Top-k <span class="info-icon" tabindex="0" data-info="Taux de personnages présents dans les k premières propositions configurées.">i</span></th>
+          <th>Top 5 <span class="info-icon" tabindex="0" data-info="Taux de personnages présents dans les cinq premières propositions.">i</span></th>
+          <th>Non trouves <span class="info-icon" tabindex="0" data-info="Nombre de cas sans proposition retournée.">i</span></th>
+          <th>Statut <span class="info-icon" tabindex="0" data-info="État de disponibilité de l'algorithme pendant le benchmark.">i</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr id="algo-row-tfidf">
+          <td id="algo-tfidf-label">TF-IDF</td>
+          <td id="algo-tfidf-processed">0 / 0</td>
+          <td id="algo-tfidf-accuracy">0.0000</td>
+          <td id="algo-tfidf-topk">0.0000</td>
+          <td id="algo-tfidf-top5">0.0000</td>
+          <td id="algo-tfidf-notfound">0</td>
+          <td id="algo-tfidf-status">-</td>
+        </tr>
+        <tr id="algo-row-autoencoder">
+          <td id="algo-autoencoder-label">Vecteurs compresses</td>
+          <td id="algo-autoencoder-processed">0 / 0</td>
+          <td id="algo-autoencoder-accuracy">0.0000</td>
+          <td id="algo-autoencoder-topk">0.0000</td>
+          <td id="algo-autoencoder-top5">0.0000</td>
+          <td id="algo-autoencoder-notfound">0</td>
+          <td id="algo-autoencoder-status">-</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="moulinette-config">
+    <div>Questions : <span>{{ config.num_questions }}</span> | Min parties : <span>{{ config.min_games }}</span> | Graine : <span>{{ config.seed }}</span></div>
+    <div>Limite : <span>{{ config.limit|default:"-" }}</span> | Top-k : <span>{{ config.top_k }}</span> | Ratio min : <span>{{ config.min_ratio }}</span></div>
+    <div>Erreurs max : <span>{{ config.max_mistakes }}</span> | Passes max : <span>{{ config.max_skips }}</span></div>
+    <div>Modèle autoencodeur : <span>{{ config.autoencoder_weights_path|default:"-" }}</span></div>
+    <div>Ids : <span>{{ config.item_ids|default:"-" }}</span> | Recherche rapide : <span>{{ config.use_fast_search }}</span> | Compressés : <span>{{ config.include_autoencoder }}</span></div>
+    <div>Dataset : <span>{{ config.dataset_source|default:"generated" }}</span>{% if config.reused_dataset_from_run_id %} | Source : <span>#{{ config.reused_dataset_from_run_id }}</span>{% endif %}</div>
+  </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script src="{% static 'celery_progress/celery_progress.js' %}"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var tooltip = document.createElement("div");
+    tooltip.className = "info-tooltip";
+    tooltip.hidden = true;
+    document.body.appendChild(tooltip);
+
+    function positionTooltip(target) {
+      var rect = target.getBoundingClientRect();
+      tooltip.style.left = Math.max(12, Math.min(rect.left, window.innerWidth - tooltip.offsetWidth - 12)) + "px";
+      tooltip.style.top = Math.max(12, Math.min(rect.bottom + 8, window.innerHeight - tooltip.offsetHeight - 12)) + "px";
+    }
+
+    function showInfoTooltip(target) {
+      var text = target.getAttribute("data-info");
+      if (!text) {
+        return;
+      }
+      tooltip.textContent = text;
+      tooltip.hidden = false;
+      positionTooltip(target);
+    }
+
+    function hideInfoTooltip() {
+      tooltip.hidden = true;
+    }
+
+    document.querySelectorAll(".info-icon").forEach(function (icon) {
+      icon.addEventListener("mouseenter", function () { showInfoTooltip(icon); });
+      icon.addEventListener("focus", function () { showInfoTooltip(icon); });
+      icon.addEventListener("mouseleave", hideInfoTooltip);
+      icon.addEventListener("blur", hideInfoTooltip);
+    });
+
+    var progressUrl = "{% url 'celery_progress:task_status' task_id %}";
+    var statusUrl = "{% url 'admin:moulinette_status' task_id %}";
+    var includeAutoencoder = "{{ config.include_autoencoder|yesno:'true,false' }}" === "true";
+
+    function updateStats(data) {
+      if (!data) {
+        return;
+      }
+      document.getElementById("stat-processed").textContent = data.processed || 0;
+      document.getElementById("stat-total").textContent = "sur " + (data.total || 0);
+      document.getElementById("stat-accuracy").textContent = (data.accuracy || 0).toFixed(4);
+      document.getElementById("stat-topk").textContent = (data.top_k_accuracy || 0).toFixed(4);
+      document.getElementById("stat-top5").textContent = (data.top_5_accuracy || 0).toFixed(4);
+      document.getElementById("stat-correct").textContent = data.correct || 0;
+      document.getElementById("stat-incorrect").textContent = data.incorrect || 0;
+      document.getElementById("stat-notfound").textContent = data.not_found || 0;
+      document.getElementById("stat-depth").textContent = (data.avg_tree_depth || 0).toFixed(2);
+      document.getElementById("stat-questions").textContent = (data.avg_questions || 0).toFixed(2);
+      document.getElementById("stat-current").textContent = data.current_item || "-";
+      document.getElementById("stat-eta").textContent = formatDuration(data.eta_seconds || 0);
+      document.getElementById("stat-elapsed").textContent = formatDuration(data.elapsed_seconds || 0);
+      document.getElementById("stat-estimated-total").textContent = formatDuration(data.estimated_total_seconds || 0);
+      updateAlgorithmRows(data.algorithm_results || {});
+      if (data.status) {
+        document.getElementById("progress-bar-message").textContent = data.status;
+      }
+    }
+
+    function updateAlgorithmRows(results) {
+      updateAlgorithmRow("tfidf", results.tfidf);
+      updateAlgorithmRow("autoencoder", results.autoencoder);
+      document.getElementById("algo-row-autoencoder").style.display = includeAutoencoder ? "" : "none";
+    }
+
+    function updateAlgorithmRow(key, result) {
+      if (!result) {
+        return;
+      }
+      var prefix = "algo-" + key + "-";
+      document.getElementById(prefix + "label").textContent = result.label || key;
+      document.getElementById(prefix + "processed").textContent = (result.processed || 0) + " / " + (result.total || 0);
+      document.getElementById(prefix + "accuracy").textContent = (result.accuracy || 0).toFixed(4);
+      document.getElementById(prefix + "topk").textContent = (result.top_k_accuracy || 0).toFixed(4);
+      document.getElementById(prefix + "top5").textContent = (result.top_5_accuracy || 0).toFixed(4);
+      document.getElementById(prefix + "notfound").textContent = result.not_found || 0;
+      if (result.available === false) {
+        document.getElementById(prefix + "status").textContent = result.status || "Indisponible";
+      } else {
+        document.getElementById(prefix + "status").textContent = result.status || "OK";
+      }
+    }
+
+    function formatDuration(seconds) {
+      var safeSeconds = Math.max(0, Math.round(seconds || 0));
+      var minutes = Math.floor(safeSeconds / 60);
+      var remainingSeconds = safeSeconds % 60;
+      if (minutes >= 60) {
+        var hours = Math.floor(minutes / 60);
+        var remainingMinutes = minutes % 60;
+        return hours + " h " + remainingMinutes + " min";
+      }
+      if (minutes > 0) {
+        return minutes + " min " + remainingSeconds + " s";
+      }
+      return remainingSeconds + " s";
+    }
+
+    function fetchStats() {
+      fetch(statusUrl)
+        .then(function (response) { return response.json(); })
+        .then(updateStats)
+        .catch(function () {});
+    }
+
+    CeleryProgressBar.initProgressBar(progressUrl, {
+      onProgress: fetchStats,
+      onSuccess: function () {
+        fetchStats();
+        document.querySelector(".moulinette-run").classList.add("moulinette-done");
+        document.getElementById("progress-bar-message").textContent = "Benchmark termine.";
+      }
+    });
+
+    fetchStats();
+    setInterval(fetchStats, 1500);
+  });
+</script>
+{% endblock %}

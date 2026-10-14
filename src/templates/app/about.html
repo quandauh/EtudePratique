@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}A propos{% endblock %}
+
+{% block content %}
+  <div class="text-justify">
+    <img class="d-block mx-auto my-2" src="{% static "img/devinsa.png" %}" alt="Logo Devinsa">
+    <h2>Notre projet</h2>
+    <p class="p-2 bg-secondary-subtle rounded-3">
+      Le projet Devinsa porte sur la réalisation d'une application Web ludique basée sur l'acquisition et l'exploitation
+      de connaissances. Cette application est accessible depuis un PC ou un smartphone et sa mise en œuvre est basée sur
+      une solution PaaS (Platform as a Service : Platforme d'hébergement d'application) afin d'assurer son
+      fonctionnement selon la charge de travail. L'idée originale de ce projet vient d'une volonté du département
+      Informatique de l'INSA Rennes de disposer d'une vitrine technologique accessible en permanence et qui serait
+      présentée lors d'évènements comme les JPO. Nous avons pour cela décidé de réaliser un jeu semblable au jeu en
+      ligne Akinator qui essaye de deviner le personnage auquel le joueur pense.
+    </p>
+    <h2>Notre équipe</h2>
+    <p class="p-2 bg-secondary-subtle rounded-3">
+      Notre équipe est composée de quatre étudiants en troisième année en département Informatique de l'INSA Rennes.
+      Notre projet est encadré par M. Christian Raymond, enseignant-chercheur à l'INSA Rennes.
+    </p>
+    <h2>Le jeu</h2>
+    <p class="p-2 bg-secondary-subtle rounded-3">
+      Le joueur choisit un personnage à faire deviner. Il doit ensuite répondre aux questions posées par Devinsa. Il
+      dispose de trois réponses possibles : "OUI", "NON" ou "passe". Au bout des vingt questions posées, Devinsa fait
+      une proposition de personnage. S'il a raison, Devinsa a gagné. Si le personnage proposé n'est pas celui auquel le
+      joueur pense, celui-ci peut proposer de rajouter le personnage dans la base de données de Devinsa. De nouvelles
+      questions sur ce personnage peuvent également être ajoutées afin d'enrichir le jeu. Une fois la partie finie, le
+      joueur peut consulter le rapport de fin de partie puis recommencer à jouer.
+    </p>
+  </div>
+{% endblock %}

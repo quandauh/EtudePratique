@@ -1,0 +1,105 @@
+{% extends "admin/admin_base.html" %}
+{% load static %}
+
+{% block title %}Arbre des questions{% endblock %}
+
+{% block script %}
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementsByClassName("container")[0].classList.remove("container");
+      d3.json("{% static tree_url|safe %}").then(data => {
+        const colors = ["#6CC3E8", "#A9FF8C", "#FF6464"]
+        const mappedData = data.map(d => {
+          return {
+            nodeId: d.id,
+            parentNodeId: d.parentId,
+            backgroundColor: colors[d.colorId],
+            height: d.parentId === null ? 100 : 160,
+            template: `<div class="m-2">
+                        <p>${d.itemCount} personnages</p>
+                        ${d.persos.map(d => `<p class="mb-0">${d}</p>`).join("")}
+                        <br>
+                        <p class="fw-bold mb-0">${d.questionTitle}</p>
+                      </div>`
+          }
+        });
+        const chart = new d3.OrgChart()
+          .container(".chart-container")
+          .data(mappedData)
+          .nodeHeight(d => d.data.height)
+          .linkUpdate(function () {
+            d3.select(this)
+              .attr("stroke", () => "#AAAAAA")
+              .attr("stroke-width", () => 2)
+          })
+          .nodeContent(d => {
+            return `<div class="position-absolute border border-secondary-subtle border-2 rounded-4"
+                        style="background-color: ${d.data.backgroundColor}; margin-top: -1px; width: ${d.width}px; height: ${d.height}px;">
+                      ${d.data.template}
+                    </div>`
+          }).onNodeClick(d => {
+            const attrs = chart.getChartState();
+            d = attrs.allNodes.find(n => n.data.nodeId === d.nodeId);
+            if (attrs.setActiveNodeCentered) {
+              d.data._centered = true;
+              d.data._centeredWithDescendants = true;
+            }
+
+            // If children are expanded
+            if (d.children) {
+              //Collapse them
+              d._children = d.children;
+              d.children = null;
+
+              // Set descendants expanded property to false
+              chart.setExpansionFlagToChildren(d, false);
+            } else {
+              // Expand children
+              d.children = d._children;
+              d._children = null;
+
+              // Set each child as expanded
+              if (d.children) {
+                d.children.forEach(({data}) => (data._expanded = true));
+              }
+            }
+            // Redraw Graph
+            chart.update(d);
+          }).render();
+      });
+    });
+  </script>
+{% endblock %}
+
+{% block content %}
+<div class="position-absolute m-2">
+
+  <div class="text-center px-md-3 py-2 rounded-5 shadow-lg border border-secondary-subtle top-0 start-0">
+
+    <h5><b>Informations sur l'arbre</b></h5>
+    Profondeur maximale : {{ depth }}<br>
+    Nombre de noeuds : {{ num_nodes }}<br>
+    <span title="log_2(1 + Nombre de noeuds)">Profondeur moyenne : {{ log2_num_nodes|floatformat:2 }}</span>
+    
+    <h5 style="margin-top: 2em;"><b>Regénérer l'arbre</b></h5>
+
+    <form action="{% url "admin:tree" %}" method="POST">
+      {% csrf_token %}
+      <div class="form-group">
+        <label for="update_tfidf">Mettre à jour les TF-IDF</label>
+        <input type="checkbox" id="update_tfidf" name="update_tfidf">
+      </div>
+      <div class="form-group">
+        <label for="depth">Profondeur</label>
+        <input min="1" id="depth" name="depth" required type="number" value="{{ depth }}" aria-label="Profondeur">
+      </div>
+      <br>
+      <button class="btn btn-primary" type="submit">Calculer</button>
+    </form>
+
+  </div>
+
+  </div>
+
+  <div class="chart-container"></div>
+{% endblock %}

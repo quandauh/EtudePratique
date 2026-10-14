@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Choisir un personnage{% endblock %}
+
+{% block content %}
+  <form action="{% url "app:guess" %}" class="flex-center" method="post">
+    {% csrf_token %}
+    <br><br>
+    <h3 class="h-6l mb-5">Donnez-moi une autre chance ^_^</h3>
+    
+    <div class="row align-items-center vh-60 gx-5">
+
+      {% for item in items %}
+        <div class="col vw-90 mx-3 px-md-5 py-3 rounded-5 shadow-lg border border-secondary-subtle">
+          <h3 class="h-6l mb-5">Est-ce que tu pensais à {{ item.name }} ?</h3>
+          <div class="character-container">
+            {% if item.image %}
+              <img class="character-image" src="{{item.image}}" alt="{{ item.name }}">
+            {% else %}
+              <div class="character-placeholder"></div>
+            {% endif %}
+          </div>
+          <div class="d-flex justify-content-evenly">
+            <button class="btn btn-primary btn-lg" name="choice" type="submit" value="{{ item.id }}">Oui</button>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+    <br><br>
+    <div class="d-flex justify-content-evenly">
+      <a class="btn btn-danger btn-lg" href="{% url "app:character" %}">Aucune de ces suggestions ne correspond</a>
+    </div>
+  </form>
+
+  <style>
+    .character-container {
+      width: 200px; /* Taille fixe pour le conteneur de caractère */
+      height: 200px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .character-image {
+      max-width: 100%;
+      max-height: 100%; /* L'image s'ajustera à la taille maximale du conteneur */
+    }
+
+    .character-placeholder {
+      width: 100px; /* Taille fixe pour le carré de caractère en l'absence d'image */
+      height: 100px;
+    }
+  </style>
+{% endblock %}

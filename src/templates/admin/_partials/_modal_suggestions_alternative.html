@@ -1,0 +1,196 @@
+<style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+    th, td {
+        border: 1px solid black;
+        padding: 8px;
+        text-align: left;
+    }
+    th {
+        background-color: #f2f2f2;
+    }
+    .yes-button, .no-button, .opposite-button {
+        padding: 5px 10px;
+        border: none;
+        cursor: pointer;
+        color: white;
+    }
+    .yes-button {
+        background-color: green;
+    }
+    .no-button {
+        background-color: red;
+    }
+    .opposite-button {
+        background-color: orange;
+    }
+
+    .validate-all-yes, .validate-all-no, .opposite-button {
+        padding: 10px 15px;
+        margin: 10px 5px;
+        border: 2px solid transparent;
+        border-radius: 5px;
+        cursor: pointer;
+        color: white;
+        font-size: 14px;
+    }
+    .validate-all-yes {
+        background-color: rgb(20, 177, 12);
+    }
+    .validate-all-no {
+        background-color: rgb(203, 8, 8);
+    }
+
+    .opposite-button {
+        background-color: orange;
+    }
+</style>
+
+<h2>Suggestions</h2>
+      {% for suggestion_type, questions in proposed_answers.items %}
+        <h3>{{ suggestion_type|title }}</h3>
+        {% for question, characters in questions.items %}
+        {% with question.0 as question_id %}
+        {% with question.1 as question_text %}
+            <div class="suggestion_div">
+                <h4 class="question_name">{{ question }}</h4>
+                {% if suggestion_type == "yes_suggestions" %}
+                    <button class="validate-button validate-all-yes" value="y">Valider oui pour tous</button>
+                    <button class="validate-button opposite-button" value="n">Valider non pour tous</button>
+                    {% elif suggestion_type == "no_suggestions" %}
+                    <button class="validate-button validate-all-no" value="n">Valider non pour tous</button>
+                    <button class="validate-button opposite-button" value="y">Valider oui pour tous</button>
+                {% endif %}
+                {% if method == "description_based" %}
+                    <button class="btn btn-secondary hide-suggestion" data-question-id="{{ question_id }}">Cacher suggestion</button>
+                {% endif %}
+                    <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Character</th>
+                            <th>Remove</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for character in characters %}
+                        <tr>
+                            <td>{{ character }}</td>
+                            <td>
+                                <button class="remove-character" data-character="{{ character }}" data-question="{{ question }}" style="background: none; border: none; color: red; font-size: 30px; cursor: pointer;">
+                                    &times;
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endwith %}
+            {% endwith %}
+            {% endfor %}
+        {% endfor %}
+
+
+{% block script %}
+
+<script>
+    // Add a click event listener to the document to listen for clicks on the remove-character buttons
+    document.addEventListener("click", function (event) {
+        if (event.target.classList.contains("remove-character")) {
+            // Find the closest table row and remove it
+            const row = event.target.closest("tr");
+            if (row) {
+                row.remove();
+            }
+        }
+    });
+
+    // Add a click event listener to the document to listen for clicks on the hide-suggestion buttons
+    // This is for the "Cacher suggestion" button
+    // that hides the suggestion div
+    // and sends a request to the server to remove the suggestion from the saved suggestions
+    document.addEventListener("click", function (event) {
+        if (event.target.classList.contains("hide-suggestion")) {
+            const questionId = event.target.getAttribute("data-question-id");
+
+            fetch("{% url 'admin:remove_suggestion' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+                body: JSON.stringify({ question_id: questionId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log(data.message);  // Changed from console to console.log
+                    // Supprimer la suggestion de l'interface utilisateur
+                    event.target.closest(".suggestion_div").remove();
+                } else {
+                    console.log(data.message);  // Changed from alert to console.log
+                }
+            })
+            .catch(error => {
+                console.error("Erreur :", error);
+                alert("Une erreur s'est produite.");
+            });
+        }
+    });
+
+
+    // Add a click event listener to the document to listen for clicks on the validate-all-yes buttons
+    document.addEventListener("click", function (event) {
+        if (event.target.classList.contains("validate-button")) {
+            // Find the next sibling table
+            var table = event.target.nextElementSibling;
+            while(table && !table.classList.contains("table")) {
+                table = table.nextElementSibling;
+            }
+            if (table && table.classList.contains("table")) {
+                const rows = table.querySelectorAll("tbody tr");
+                var characters = [];
+                rows.forEach(row => {
+                    const cell = row.querySelector("td");
+                    if (cell) {
+                        characters.push(cell.innerText);
+                    }
+                });
+                // Build the dictionnary to send to the server
+                var question = table.previousElementSibling;
+                while(question && !question.classList.contains("question_name")) {
+                    question = question.previousElementSibling;
+                }
+                if (question && question.classList.contains("question_name")) {
+                    question = question.innerText;
+                    var data = {
+                        "question": question,
+                        "characters": characters,
+                        "validate": event.target.value,
+                    };
+                    fetch("{% url 'admin:validate_suggestions_alternative' %}", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": "{{ csrf_token }}"
+                        },
+                        body: JSON.stringify(data)
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            console.log("Success");
+                            // Remove the div suggestion_div linked to that question
+                            table.closest(".suggestion_div").remove();
+                        } else {
+                            console.log("Error");
+                        }
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

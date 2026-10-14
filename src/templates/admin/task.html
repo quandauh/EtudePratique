@@ -1,0 +1,261 @@
+
+{% extends "admin/admin_base.html" %}
+{% load static %}
+
+{% block title %}{{ task_title|default:"Tache en cours" }}{% endblock %}
+
+{% block stylesheet %}
+<style>
+  .task-run {
+    margin: 2.5rem 0;
+  }
+
+  .task-progress-copy {
+    margin-top: 0.75rem;
+  }
+
+  .task-live-panel {
+    margin-top: 1.5rem;
+    display: none;
+  }
+
+  .task-live-panel.is-visible {
+    display: block;
+  }
+
+  .task-live-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 1rem;
+  }
+
+  .task-live-card,
+  .task-live-history {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 16px;
+    background: #fff;
+    padding: 1rem 1.1rem;
+  }
+
+  .task-live-label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6c757d;
+    margin-bottom: 0.35rem;
+  }
+
+  .task-live-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+
+  .task-live-subtle {
+    color: #6c757d;
+    font-size: 0.9rem;
+  }
+
+  .task-live-history {
+    margin-top: 1rem;
+  }
+
+  .task-live-history ul {
+    margin: 0;
+    padding-left: 1.25rem;
+  }
+
+  .task-live-history li + li {
+    margin-top: 0.35rem;
+  }
+
+  .info-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    width: 1rem;
+    height: 1rem;
+    margin-left: 0.25rem;
+    border-radius: 50%;
+    border: 1px solid rgba(27, 27, 27, 0.35);
+    color: rgba(27, 27, 27, 0.7);
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1;
+    text-transform: none;
+    cursor: help;
+  }
+
+  .info-icon:focus {
+    outline: 2px solid rgba(13, 110, 253, 0.35);
+    outline-offset: 2px;
+  }
+
+  .info-tooltip {
+    position: fixed;
+    z-index: 3000;
+    max-width: 280px;
+    padding: 0.5rem 0.65rem;
+    border-radius: 6px;
+    background: #1b1b1b;
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 400;
+    line-height: 1.25;
+    text-transform: none;
+    letter-spacing: 0;
+    box-shadow: 0 12px 28px rgba(27, 27, 27, 0.22);
+    pointer-events: none;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="task-run">
+  {% if task_title %}
+  <h1 class="h3">{{ task_title }}</h1>
+  {% endif %}
+  {% if task_message %}
+  <p class="text-muted">{{ task_message }}</p>
+  {% endif %}
+
+  <div class='progress mt-5'>
+    <div id='progress-bar' class='progress-bar progress-bar-striped progress-bar-animated' style="width: 0%;">&nbsp;</div>
+  </div>
+  <div id="progress-bar-message" class="task-progress-copy">Launching task...</div>
+
+  {% if task_ui == "autoencoder" %}
+  <div id="task-live-panel" class="task-live-panel">
+    <div class="task-live-grid">
+      <div class="task-live-card">
+        <div class="task-live-label">Epoch <span class="info-icon" tabindex="0" data-info="Epoch actuellement traitée sur le nombre total d'epochs demandées.">i</span></div>
+        <div id="task-live-epoch" class="task-live-value">-</div>
+        <div id="task-live-epoch-sub" class="task-live-subtle">En attente</div>
+      </div>
+      <div class="task-live-card">
+        <div class="task-live-label">Loss <span class="info-icon" tabindex="0" data-info="Erreur de reconstruction finale de la dernière epoch terminée. Plus elle est basse, plus le modèle reproduit fidèlement les vecteurs d'entrée.">i</span></div>
+        <div id="task-live-loss" class="task-live-value">-</div>
+      </div>
+      <div class="task-live-card">
+        <div class="task-live-label">False Positives <span class="info-icon" tabindex="0" data-info="Nombre de sorties reconstruites comme positives alors qu'elles sont négatives dans les données d'entraînement.">i</span></div>
+        <div id="task-live-fp" class="task-live-value">-</div>
+      </div>
+      <div class="task-live-card">
+        <div class="task-live-label">False Negatives <span class="info-icon" tabindex="0" data-info="Nombre de sorties reconstruites comme négatives alors qu'elles sont positives dans les données d'entraînement.">i</span></div>
+        <div id="task-live-fn" class="task-live-value">-</div>
+      </div>
+      <div class="task-live-card">
+        <div class="task-live-label">Duree <span class="info-icon" tabindex="0" data-info="Durée mesurée pour la dernière epoch terminée.">i</span></div>
+        <div id="task-live-duration" class="task-live-value">-</div>
+      </div>
+    </div>
+    <div class="task-live-history">
+      <div class="task-live-label">Journal recent <span class="info-icon" tabindex="0" data-info="Résumé des dernières epochs conservé pendant l'entraînement pour suivre l'évolution des métriques.">i</span></div>
+      <ul id="task-live-history-list"></ul>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block script %}
+<script src="{% static 'celery_progress/celery_progress.js' %}"></script>
+<!-- popups -->
+<link rel="stylesheet" href="{% static 'css/popup.css' %}">
+<!-- Affichage des popups -->
+<script>
+// vanilla JS version
+document.addEventListener("DOMContentLoaded", function () {
+  var progressUrl = "{% url 'celery_progress:task_status' task_id %}";
+  var isAutoencoderTask = "{{ task_ui|default:'' }}" === "autoencoder";
+
+  function formatMetric(value, digits) {
+    if (value === undefined || value === null || value === "") {
+      return "-";
+    }
+    var number = Number(value);
+    if (Number.isNaN(number)) {
+      return String(value);
+    }
+    return number.toFixed(digits);
+  }
+
+  var tooltip = document.createElement("div");
+  tooltip.className = "info-tooltip";
+  tooltip.hidden = true;
+  document.body.appendChild(tooltip);
+
+  function positionTooltip(target) {
+    var rect = target.getBoundingClientRect();
+    tooltip.style.left = Math.max(12, Math.min(rect.left, window.innerWidth - tooltip.offsetWidth - 12)) + "px";
+    tooltip.style.top = Math.max(12, Math.min(rect.bottom + 8, window.innerHeight - tooltip.offsetHeight - 12)) + "px";
+  }
+
+  function showTooltip(target) {
+    var text = target.getAttribute("data-info");
+    if (!text) {
+      return;
+    }
+    tooltip.textContent = text;
+    tooltip.hidden = false;
+    positionTooltip(target);
+  }
+
+  function hideTooltip() {
+    tooltip.hidden = true;
+  }
+
+  document.querySelectorAll(".info-icon").forEach(function (icon) {
+    icon.addEventListener("mouseenter", function () { showTooltip(icon); });
+    icon.addEventListener("focus", function () { showTooltip(icon); });
+    icon.addEventListener("mouseleave", hideTooltip);
+    icon.addEventListener("blur", hideTooltip);
+  });
+
+  function updateAutoencoderPanel(progress) {
+    if (!isAutoencoderTask || !progress) {
+      return;
+    }
+
+    var panel = document.getElementById("task-live-panel");
+    panel.classList.add("is-visible");
+
+    var hasEpoch = progress.epoch !== undefined && progress.epoch !== null;
+    var epochValue = hasEpoch ? progress.epoch : null;
+    var totalValue = progress.total || 0;
+    document.getElementById("task-live-epoch").textContent =
+      hasEpoch && totalValue ? (epochValue + " / " + totalValue) : "-";
+    document.getElementById("task-live-epoch-sub").textContent = progress.status_line || progress.description || "En cours";
+
+    var metrics = progress.metrics || {};
+    document.getElementById("task-live-loss").textContent = formatMetric(metrics.loss, 4);
+    document.getElementById("task-live-fp").textContent = formatMetric(metrics.false_positives, 4);
+    document.getElementById("task-live-fn").textContent = formatMetric(metrics.false_negatives, 4);
+    document.getElementById("task-live-duration").textContent =
+      metrics.duration_seconds === undefined || metrics.duration_seconds === null
+        ? "-"
+        : formatMetric(metrics.duration_seconds, 2) + " s";
+
+    var history = Array.isArray(progress.history) ? progress.history : [];
+    var historyList = document.getElementById("task-live-history-list");
+    historyList.innerHTML = "";
+    history.forEach(function (entry) {
+      var item = document.createElement("li");
+      item.textContent = entry;
+      historyList.appendChild(item);
+    });
+  }
+
+  CeleryProgressBar.initProgressBar(progressUrl, {
+    onProgress: function (progressBarElement, progressBarMessageElement, progress) {
+      CeleryProgressBar.prototype.onProgressDefault.call(this, progressBarElement, progressBarMessageElement, progress);
+      updateAutoencoderPanel(progress);
+    },
+    onSuccess: function (progressBarElement, progressBarMessageElement, result, progress) {
+      updateAutoencoderPanel(progress);
+      window.location.replace("{{ redirection }}");
+    }
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,132 @@
+{% extends "admin/admin_base.html" %}
+{% block content %}
+{% if admin_messages.upload_error %}
+  <div class="alert alert-danger">{{ admin_messages.upload_error }}</div>
+{% endif %}
+{% if admin_messages.upload_success %}
+  <div class="alert alert-success">{{ admin_messages.upload_success }}</div>
+{% endif %}
+{% if admin_messages.reload_error %}
+  <div class="alert alert-danger">{{ admin_messages.reload_error }}</div>
+{% endif %}
+{% if admin_messages.reload_success %}
+  <div class="alert alert-success">{{ admin_messages.reload_success }}</div>
+{% endif %}
+<h1>Statistiques de la base de données</h1>
+
+<ul>
+  <li>Nombre de personnages : {{ num_characters }}</li>
+  <li>Nombre de questions : {{ num_questions }}</li>
+  <li>Nombre de réponses : {{ num_answers }}</li>
+  <li>Réponses Oui : {{ yes_count }}</li>
+  <li>Réponses Non : {{ no_count }}</li>
+  <li>Réponses Pass : {{ pass_count }}</li>
+
+</ul>
+<h2>Personnages les plus joués</h2>
+<ul>
+  {% for item in most_played %}
+    <li>{{ item.name }} ({{ item.games }} parties)</li>
+  {% endfor %}
+</ul>
+<h2>Derniers personnages ajoutés</h2>
+<ul>
+  {% for item in recent_characters %}
+    <li>{{ item.name }}</li>
+  {% endfor %}
+</ul>
+
+<h2 class="mt-4">État du VPS</h2>
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="card-title">CPU</h5>
+        <p class="mb-1">Cœurs : {{ system_metrics.cpu.cores }}</p>
+        <p class="mb-0">
+          Load average :
+          {{ system_metrics.cpu.load_1 }} /
+          {{ system_metrics.cpu.load_5 }} /
+          {{ system_metrics.cpu.load_15 }}
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="card-title">Mémoire</h5>
+        <p class="mb-1">Utilisée : {{ system_metrics.memory.used }} / {{ system_metrics.memory.total }}</p>
+        <p class="mb-1">Disponible : {{ system_metrics.memory.available }}</p>
+        <p class="mb-0">Occupation : {{ system_metrics.memory.percent }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="card-title">Disque</h5>
+        <p class="mb-1">Chemin : <code>{{ system_metrics.disk.path }}</code></p>
+        <p class="mb-1">Utilisé : {{ system_metrics.disk.used }} / {{ system_metrics.disk.total }}</p>
+        <p class="mb-0">Libre : {{ system_metrics.disk.free }} ({{ system_metrics.disk.percent }})</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3>Services</h3>
+<div class="table-responsive mb-4">
+  <table class="table table-sm align-middle">
+    <thead>
+      <tr>
+        <th>Composant</th>
+        <th>Service détecté</th>
+        <th>État</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for service in system_metrics.services %}
+        <tr>
+          <td>{{ service.label }}</td>
+          <td><code>{{ service.name }}</code></td>
+          <td>
+            <span class="badge {% if service.state == 'active' %}text-bg-success{% else %}text-bg-warning{% endif %}">
+              {{ service.state }}
+            </span>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<h3>Processus surveillés</h3>
+{% if system_metrics.processes %}
+  <div class="table-responsive">
+    <table class="table table-sm align-middle">
+      <thead>
+        <tr>
+          <th>Catégorie</th>
+          <th>PID</th>
+          <th>CPU</th>
+          <th>RAM</th>
+          <th>Commande</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for process in system_metrics.processes %}
+          <tr>
+            <td>{{ process.category }}</td>
+            <td><code>{{ process.pid }}</code></td>
+            <td>{{ process.cpu }}</td>
+            <td>{{ process.memory }}</td>
+            <td><code>{{ process.command }}</code></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <p>Aucun processus Devinsa, MariaDB, Redis/Valkey, Celery, arbre ou moulinette détecté dans le snapshot.</p>
+{% endif %}
+{% endblock %}

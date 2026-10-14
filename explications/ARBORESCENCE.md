@@ -1,0 +1,27 @@
+- devinsa : Projet Django
+  - admin : Interface d'administration et de calcul
+    - tasks.py : Tâches Celery longues
+    - utils/ : Algorithmes de visualisation, suggestions, arbre, autoencodeur, maintenance
+    - management/commands : Commandes spécifiques à l'admin
+    - urls.py : Routes admin
+    - views.py : Vues admin
+  - app : Partie jouable
+    - management/commands : Commandes utilitaires côté app
+    - migrations : Schéma de base de données
+    - models : Modèles métier
+    - forms.py : Formulaires d'ajout
+    - urls.py : Routes du jeu
+    - views.py : Vues du jeu
+    - utilities/ : Fonctions de recherche, TF-IDF, score, similarité
+  - devinsa : Configuration Django
+    - celery.py : Initialisation Celery
+    - serializer.py : Sérialisation de session
+    - settings.py : Paramètres Django, cache, Celery, maintenance
+    - urls.py : Routes globales
+    - wsgi.py : Point d'entrée WSGI
+  - templates : Templates HTML
+  - static : JS, CSS, images, données exportées
+- conf : Configuration serveur (nginx, systemd, uwsgi)
+- explications : Documentation projet
+- src/tests : Tests de non-régression
+- pyproject.toml : Gestion du projet Python

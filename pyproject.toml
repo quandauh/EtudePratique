@@ -1,0 +1,82 @@
+[tool.poetry]
+name = "devinsa"
+version = "0.1.0"
+description = "Akinator for INSA Rennes"
+authors = [
+    "Christian RAYMOND <craymond@insa-rennes.fr>",
+    "Alexis SIMON <alesimon@insa-rennes.fr>",
+    "Benjamin GIRAUD-RENARD <bgiraudr@insa-rennes.fr>",
+    "Julie PESSEY <jpessey@insa-rennes.fr>",
+    "Arthur MAUGER <armauger@insa-rennes.fr>"
+]
+readme = "README.md"
+
+
+[tool.poe.tasks]
+typecheck = "mypy src"
+m = { script = "manage:main", cwd = "src" }  # Alias for accessing manage.py
+
+
+[tool.poetry.dependencies]
+python = ">=3.10 <3.12"
+django = "^4.2.1"
+mysqlclient = "^2.1.1"
+pyuwsgi = { version = "^2.0.22", platform = "linux" } # Web server de déploiement
+tensorflow = "^2.12.0"
+tensorflow-intel = { version = "^2.12.0", platform = "win32" }
+tensorflow-io-gcs-filesystem = [
+    { version = "^0.32.0", platform = "linux" },
+    { version = "^0.31.0", platform = "win32" }]
+scikit-learn = "^1.2.2"
+pandas = "^2.0.1"
+celery-progress = "^0.3"
+tqdm = "^4.66.4"
+celery = "^5.4.0"
+redis = "^5.0.4"
+nltk = "^3.9.1"
+spacy = "^3.8.5"
+
+
+[tool.poetry.group.dev.dependencies]
+poethepoet = "^0.20.0"  # Command runner
+mypy = "^1.2.0"  # Type checker
+django-stubs = { extras = ["compatible-mypy"], version = "^4.2.0" }
+django-fastdev = "^1.7.3"
+ipython = { version = "^8.13.1", platform = "win32" }  # Better interactive shell
+bpython = { version = "^0.24", platform = "linux" }
+django-stubs-ext = "^5.2.5"
+
+
+[tool.mypy]
+plugins = ["mypy_django_plugin.main"]
+exclude = ["migrations", "Autoencodeur"]
+files = "src"
+mypy_path = "src"
+allow_redefinition = true
+check_untyped_defs = true
+disallow_any_unimported = true
+disallow_any_generics = true
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+disallow_untyped_decorators = true
+explicit_package_bases = true
+ignore_errors = false
+ignore_missing_imports = true
+implicit_reexport = true
+local_partial_types = true
+namespace_packages = true
+no_implicit_optional = true
+strict = true
+strict_equality = true
+strict_optional = true
+show_error_codes = true
+warn_no_return = true
+warn_return_any = true
+warn_redundant_casts = true
+warn_unreachable = true
+warn_unused_configs = true
+warn_unused_ignores = true
+
+
+[tool.django-stubs]
+django_settings_module = "devinsa.settings"

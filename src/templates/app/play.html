@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Jouer{% endblock %}
+
+{% block content %}
+  <form id="responseForm" action="{% url "app:play" %}" class="flex-center" method="post">
+    {% csrf_token %}
+    <div class="row align-items-center vh-60 gx-5">
+      <div class="col d-none d-lg-block align-self-end">
+        <img src="{% static "img/albert.png" %}" alt="Albert Einstein">
+      </div>
+      <div class="text-center col vw-90 mx-3 px-md-5 py-3 rounded-5 shadow-lg border border-secondary-subtle">
+        <h3 class="mb-4">Question {{ depth }}</h3>
+        <h3 class="h-6l mb-5 pb-5">{{ question }}</h3>
+        <div class="d-flex justify-content-evenly">
+          <button id="submitYes" class="btn btn-primary btn-lg" name="choice" type="submit" value="y">Oui</button>
+          <button id="submitNo" class="btn btn-primary btn-lg" name="choice" type="submit" value="n">Non</button>
+          <button id="submitSkip" class="btn btn-primary btn-lg" name="choice" type="submit" value="p">Passe</button>
+        </div>
+        {% if depth > 1 %}
+          <button id="correct" class="btn btn-primary btn-lg mt-3" name="undo" type="submit" value="Retour">← Corriger</button>
+        {% else %}
+          <button class="invisible btn btn-primary btn-lg mt-3" type="button">Hidden</button>
+        {% endif %}
+      </div>
+      <div class="col d-none d-lg-block align-self-start">
+        <img src="{% static "img/nuage.png" %}" alt="nuage">
+      </div>
+    </div>
+  </form>
+
+<script>
+  // Désactiver les boutons après soumission du formulaire, pour éviter que l'on re-clique pendant le chargement
+  const responseForm = document.getElementById("responseForm");
+  const choiceButtons = [
+    document.getElementById("submitYes"),
+    document.getElementById("submitNo"),
+    document.getElementById("submitSkip"),
+  ].filter(Boolean);
+  const undoButton = document.getElementById("correct");
+
+  let lastSubmitter = null;
+
+  choiceButtons.forEach(function(button) {
+    button.addEventListener("click", function() {
+      lastSubmitter = button;
+    });
+  });
+
+  if (undoButton) {
+    undoButton.addEventListener("click", function() {
+      lastSubmitter = undoButton;
+    });
+  }
+
+  responseForm.addEventListener("submit", function(event) {
+      const submitter = event.submitter || lastSubmitter || document.activeElement;
+
+      choiceButtons.forEach(function(button) {
+        button.disabled = button !== submitter;
+      });
+
+      if (undoButton && undoButton !== submitter) {
+        undoButton.disabled = true;
+      }
+
+      if (submitter && submitter.tagName === "BUTTON") {
+        setTimeout(function() {
+          submitter.disabled = true;
+        });
+      }
+  });
+</script>
+
+{% endblock %}

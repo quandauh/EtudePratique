@@ -1,0 +1,103 @@
+{% extends "admin/admin_base.html" %}
+{% load static %}
+
+{% block title %}Regrouper doublons{% endblock %}
+
+{% block content %}
+  
+  <div class="entrainerAutoEncodeur">
+    <button class="btn btn-primary mt-3" onclick="openModal3()">Mettre à jour les doublons</button>
+  </div>
+  <br>
+  <!-- Une fenetre apparaitra pour pouvoir saisir les parametre pour générer les suggestions-->
+  <div id="confirmationModal3" class="modal">
+    <div class="modal-content">
+      <button class="btn btn-primary mt-3 text-left" onclick="closeModal3()">Cancel</button>
+      <p><b>What are the parameters to generate suggestions ?</b></p>
+      <form id="autoEncoderForm" action="{% url 'admin:find_duplicates' %}" method="post">
+        {% csrf_token %}
+        <div class="form-group">
+          <label for="inputTrigger"><i>Which value should trigger suggestion ?</i></label>
+          <input type="text" id="inputTrigger" name="inputTrigger" class="default-value" value="0.8">
+        </div>
+        <div class="button-group">
+          <button class="btn btn-primary mt-3" type="submit" onclick="showLoading()">Confirm</button>
+        </div>
+      </form>
+      <div id="loadingLoader" class="loader" style="display: none;"></div>
+      <p id="loadingMessage" class="loading-message"></p>
+    </div>
+  </div>
+  <!------------------------------------------------------------------>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <td>Fusion</td>
+        <td>Personnage 1</td>
+        <td>Fusion</td>
+        <td>Personnage 2</td>
+        <td>Fusion</td>
+      </tr>
+    </thead> 
+    <tbody>
+      {% for doublon in doublons %}
+      <tr>
+        <form action="{% url "admin:duplicates" %}" method="post">
+          {% csrf_token %}
+          <td>
+            <input  class="form-check-input btn-check" 
+                    type="submit" 
+                    value="{{doublon.id}}" 
+                    id="checked-{{doublon.id}}-c1" 
+                    name="validate-item1" 
+                    >
+            <label class="btn btn-success" for="checked-{{doublon.id}}-c1"><-</label>
+          </td>
+          <td><a target="_blank" class="link-primary link-underline-opacity-0 link-underline-opacity-0-hover" href="{% url "admin:character_details" doublon.item1.id %}">{{ doublon.item1.name }}</a></td>
+          <td>
+            <input  class="form-check-input btn-check" 
+                    type="submit" 
+                    value="{{doublon.id}}" 
+                    id="checked-{{doublon.id}}-x" 
+                    name="validate-x" 
+                    >
+            <label class="btn btn-danger" for="checked-{{doublon.id}}-x">X</label>
+          </td>
+          <td><a target="_blank" class="link-primary link-underline-opacity-0 link-underline-opacity-0-hover" href="{% url "admin:character_details" doublon.item2.id %}">{{ doublon.item2.name }}</a></td>
+          <td>
+            <input  class="form-check-input btn-check" 
+                    type="submit" 
+                    value="{{doublon.id}}" 
+                    id="checked-{{doublon.id}}-c2" 
+                    name="validate-item2" 
+                    >
+            <label class="btn btn-success" for="checked-{{doublon.id}}-c2">-></label>
+          </td>
+        </form>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
+
+{% block script %}
+<!-- popups -->
+<link rel="stylesheet" href="{% static 'css/popup.css' %}">
+<!-- Affichage des popups -->
+<script>
+  function openModal3() {
+    document.getElementById('confirmationModal3').style.display = 'block';
+  }
+
+  function closeModal3() {
+    document.getElementById('confirmationModal3').style.display = 'none';
+  }
+
+  function showLoading() {
+    var loadingLoader = document.getElementById('loadingLoader');
+    var loadingMessage = document.getElementById('loadingMessage');
+    loadingLoader.style.display = 'block';
+    loadingMessage.innerHTML ="En cours d'exécution...";
+  }
+</script>
+{% endblock %}

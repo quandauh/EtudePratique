@@ -1,0 +1,194 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary px-3">
+  <a class="navbar-brand text-white" href="{% url 'admin:admin_index' %}">Devinsa admin</a>
+  <button
+    class="navbar-toggler border-0"
+    type="button"
+    data-bs-toggle="collapse"
+    data-bs-target="#adminNavbar"
+    aria-controls="adminNavbar"
+    aria-expanded="false"
+    aria-label="Basculer la navigation"
+  >
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  <div class="collapse navbar-collapse" id="adminNavbar">
+    <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+      <li class="nav-item">
+        <a class="nav-link text-white" href="{% url 'admin:admin_index' %}">Accueil</a>
+      </li>
+
+      <li class="nav-item dropdown">
+        <button
+          class="btn btn-primary dropdown-toggle"
+          type="button"
+          id="suggestionsDropdown"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          Suggestions
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="suggestionsDropdown">
+          <li><a class="dropdown-item" href="{% url 'admin:suggestions' %}">Suggestions autoencodeur</a></li>
+          <li><a class="dropdown-item" href="{% url 'admin:selection_suggestions' %}">Suggestions par proximité</a></li>
+          <li><a class="dropdown-item" href="{% url 'admin:description_based_suggestions' %}">Suggestions par descriptions</a></li>
+          <li><a class="dropdown-item" href="{% url 'admin:suggestions_alternative' %}">Suggestions alternatives</a></li>
+        </ul>
+      </li>
+
+      <li class="nav-item dropdown">
+        <button
+          class="btn btn-primary dropdown-toggle"
+          type="button"
+          id="visualisationDropdown"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          Visualisation
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="visualisationDropdown">
+          <li><a class="dropdown-item" href="{% url 'admin:statistics' %}">Statistiques</a></li>
+          <li><a class="dropdown-item" href="{% url 'admin:autoencodeur' %}">Espaces vectoriels</a></li>
+          <li><a class="dropdown-item" href="{% url 'admin:tree' %}">Arbre</a></li>
+          <li><a class="dropdown-item" href="{% url 'admin:characters' %}">Personnages</a></li>
+          <li><a class="dropdown-item" href="{% url 'admin:moulinette' %}">Moulinette</a></li>
+        </ul>
+      </li>
+
+      <li class="nav-item dropdown">
+        <button
+          class="btn btn-primary dropdown-toggle"
+          type="button"
+          id="algorithmDropdown"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          Algorithme · {% if current_mode == 'autoencoder' %}Auto-encodeur{% else %}TF-IDF{% endif %}
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="algorithmDropdown">
+          <li>
+            <form method="POST" action="{% url 'admin:toggle_algorithm_mode' %}" class="algorithm-mode-form">
+              {% csrf_token %}
+              <input type="hidden" name="mode" value="tfidf">
+              {% if current_mode == 'tfidf' %}
+                <button type="submit" data-algorithm-mode="tfidf" class="dropdown-item fw-bold">TF-IDF <span class="badge bg-primary ms-2">Actif</span></button>
+              {% else %}
+                <button type="submit" data-algorithm-mode="tfidf" class="dropdown-item">TF-IDF <span class="badge text-primary border ms-2">Basculer</span></button>
+              {% endif %}
+            </form>
+          </li>
+          <li>
+            <form method="POST" action="{% url 'admin:toggle_algorithm_mode' %}" class="algorithm-mode-form">
+              {% csrf_token %}
+              <input type="hidden" name="mode" value="autoencoder">
+              {% if current_mode == 'autoencoder' %}
+                <button type="submit" data-algorithm-mode="autoencoder" class="dropdown-item fw-bold">Auto-encodeur <span class="badge bg-primary ms-2">Actif</span></button>
+              {% else %}
+                <button type="submit" data-algorithm-mode="autoencoder" class="dropdown-item">Auto-encodeur <span class="badge text-primary border ms-2">Basculer</span></button>
+              {% endif %}
+            </form>
+          </li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item" href="{% url 'admin:upload_weights' %}">Importer poids Auto-encodeur</a></li>
+          <li>
+            <form method="POST" action="{% url 'admin:reload_autoencoder' %}" style="display:inline">
+              {% csrf_token %}
+              <button type="submit" class="dropdown-item">Recharger modèle</button>
+            </form>
+          </li>
+        </ul>
+      </li>
+
+      <li class="nav-item dropdown">
+        <button
+          class="btn btn-primary dropdown-toggle"
+          type="button"
+          id="maintenanceDropdown"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          Maintenance
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="maintenanceDropdown">
+          {% if request.user.is_superuser %}
+            <li><a class="dropdown-item" href="{% url 'admin:maintenance' %}">Mise à jour</a></li>
+          {% endif %}
+          <li><a class="dropdown-item" href="{% url 'admin:export_data' %}">Exporter les données</a></li>
+          <li><a class="dropdown-item" href="{% url 'admin:duplicates' %}">Doublons</a></li>
+        </ul>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link text-white" href="{% url 'app:index' %}">Jouer</a>
+      </li>
+    </ul>
+  </div>
+</nav>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var labels = {
+      tfidf: "TF-IDF",
+      autoencoder: "Auto-encodeur"
+    };
+    var dropdownButton = document.getElementById("algorithmDropdown");
+    var forms = document.querySelectorAll(".algorithm-mode-form");
+
+    function renderMode(mode) {
+      if (dropdownButton) {
+        dropdownButton.textContent = "Algorithme · " + labels[mode];
+      }
+      document.querySelectorAll("[data-algorithm-mode]").forEach(function (button) {
+        var buttonMode = button.getAttribute("data-algorithm-mode");
+        var isActive = buttonMode === mode;
+        button.className = isActive ? "dropdown-item fw-bold" : "dropdown-item";
+        button.innerHTML = labels[buttonMode] + (
+          isActive
+            ? ' <span class="badge bg-primary ms-2">Actif</span>'
+            : ' <span class="badge text-primary border ms-2">Basculer</span>'
+        );
+      });
+      document.dispatchEvent(new CustomEvent("devinsa:algorithm-mode", {
+        detail: { mode: mode }
+      }));
+    }
+
+    forms.forEach(function (form) {
+      form.addEventListener("submit", function (event) {
+        event.preventDefault();
+        var submitButton = form.querySelector("[data-algorithm-mode]");
+        if (submitButton) {
+          submitButton.disabled = true;
+        }
+        fetch(form.action, {
+          method: "POST",
+          body: new FormData(form),
+          headers: {
+            "X-Requested-With": "XMLHttpRequest",
+            "Accept": "application/json"
+          },
+          credentials: "same-origin"
+        })
+          .then(function (response) {
+            if (!response.ok) {
+              throw new Error("Switch failed");
+            }
+            return response.json();
+          })
+          .then(function (data) {
+            if (data.mode) {
+              renderMode(data.mode);
+            }
+          })
+          .catch(function () {
+            renderMode("{{ current_mode }}");
+          })
+          .finally(function () {
+            if (submitButton) {
+              submitButton.disabled = false;
+            }
+          });
+      });
+    });
+  });
+</script>

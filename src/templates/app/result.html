@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Résultat{% endblock %}
+
+{% block content %}
+  <div class="flex-center">
+    <div class="row align-items-center vh-60 gx-5">
+      <div class="col d-none d-lg-block align-self-end">
+        <img src="{% static "img/albert.png" %}" alt="Albert Einstein">
+      </div>
+      <div class="col d-flex flex-column align-items-center vw-100">
+        <h3 class="h-1l mb-5 line-wrap">{{ sentence }}</h3>
+        <a class="btn btn-primary btn-lg mt-5" href="{% url "app:report" %}">Consulter le rapport de partie</a>
+        <a class="btn btn-secondary btn-lg mt-3" href="{% url "app:question" %}">
+          Ajouter une question pour ce personnage
+        </a>
+        <a class="btn btn-primary btn-lg mt-3" href="{% url "app:index" %}">Rejouer</a>
+      </div>
+      <div class="col d-none d-lg-block align-self-start">
+        <img src="{% static "img/idea.png" %}" alt="idea">
+      </div>
+    </div>
+  </div>
+{% endblock %}

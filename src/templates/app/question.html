@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Ajout question{% endblock %}
+
+{% block content %}
+  <form action="{% url "app:question" %}" class="flex-center" method="post">
+    {% csrf_token %}
+    <div class="row align-items-center vh-60 gx-5">
+      <div class="col d-none d-lg-block align-self-end ">
+        <img src="{% static "img/albert.png" %}" alt="Albert Einstein">
+      </div>
+      {% if questionform %}
+        <div class="col vw-90 mx-3 px-md-5 py-3 rounded-5 shadow-lg border border-secondary-subtle">
+          <h3 class="h-6l mb-5">Ajoutez une question à laquelle vous répondriez
+            <span class="fw-bold">Oui</span> pour {{ name }}
+          </h3>
+          <div class="form-floating">
+            <input class="form-control bg-secondary-subtle" id="id_title" maxlength="255"
+                   name="title" placeholder="Question" required type="text">
+            <label for="id_title" id="label_title">Votre question :</label>
+          </div>
+          <button class="btn btn-primary btn-lg mt-3" name="question_sent" type="submit">Valider</button>
+        </div>
+      {% elif questions %}
+        <div class="col vw-90 mx-3 px-md-5 py-3 rounded-5 shadow-lg border border-secondary-subtle">
+          <h3 class="h-6l mb-5">
+            Voulez-vous remplacer votre question par l'une de la liste suivante ?
+          </h3>
+          <select class="form-select d-inline-table w-100" multiple name="closest_questions" size="5"
+                  aria-label="closest_questions">
+            {% for question in questions %}
+              <option value="{{ question.id }}">{{ question.title }}</option>
+            {% endfor %}
+          </select>
+          <button class="btn btn-secondary btn-lg mt-3" name="existing_question" type="submit">
+            Choisir cette question
+          </button>
+          <button class="btn btn-primary btn-lg mt-3" name="new_question" type="submit">
+            Maintenir la question "{{ title }}"
+          </button>
+        </div>
+      {% endif %}
+      <div class="col d-none d-lg-block align-self-start">
+        <img src="{% static "img/question.png" %}" alt="nuage">
+      </div>
+    </div>
+  </form>
+{% endblock %}

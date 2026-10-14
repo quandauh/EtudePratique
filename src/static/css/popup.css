@@ -1,0 +1,94 @@
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background-color: #fff;
+    padding: 20px;
+    text-align: center;
+    border-radius: 8px;
+    max-width: 400px; /* Réduire la largeur du modal */
+    width: 100%;
+    box-sizing: border-box;
+    border: 2px solid rgb(253, 49, 93);
+    box-shadow: 0 0 10px rgba(253, 49, 93);
+}
+
+.modal button {
+    margin: 5px;
+    padding: 10px;
+    cursor: pointer;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.form-group input {
+    width: calc(100% - 16px);
+    padding: 8px;
+    box-sizing: border-box;
+    /*border: 1px solid #ccc;*/
+    border-radius: 4px;
+    border: 1px solid rgb(253, 49, 93);
+    box-shadow: 0 0 10px rgba(253, 49, 93);
+}
+
+.button-group button {
+    margin: 5px;
+    padding: 10px;
+    cursor: pointer;
+}
+
+.default-value {
+    color: rgba(0, 0, 0, 0.5); /* Couleur de texte atténuée */
+}
+
+.text-right {
+    float: right;   
+}
+
+.text-left {
+    float: left;
+    width: 70px;
+}
+
+.loader {
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-left-color: rgb(253, 49, 93);
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: spin 1s linear infinite;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+  
+@keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+}
+  
+.loading-message {
+    margin-top: 10px;
+    font-weight: bold;
+    text-align: center;
+}

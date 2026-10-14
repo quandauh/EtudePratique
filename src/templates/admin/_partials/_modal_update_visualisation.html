@@ -1,0 +1,94 @@
+<div id="modal-update" class="modal fade" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Actions à effectuer</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="autoEncoderForm" action="{% url 'admin:update_visualisation' %}" method="post">
+        {% csrf_token %}
+        <div class="form-group">
+          <label for="update_tfidf">Mettre à jour les TF-IDF</label>
+          <br>
+          <input type="checkbox" id="update_tfidf" name="update_tfidf" checked>
+        </div>
+
+        <div class="form-group">
+          <label for="update_csv_clusters_proj">Mettre à jour les CSV, les clusters & la projection</label>
+          <br>
+          <input type="checkbox" id="update_csv_clusters_proj" name="update_csv_clusters_proj" checked>
+        </div>
+
+        <div class="form-group  mt-3">
+          <label for="clustering_algorithm">Algorithme de clustering</label>
+          <select id="clustering_algorithm" name="clustering_algorithm" class="form-control">
+            <option value="kmeans" selected>KMeans</option>
+            <option value="dbscan">DBSCAN</option>
+          </select>
+        </div>
+
+        <div class="form-group  mt-3">
+          <label for="n_clusters">Nombre de clusters</label>
+          <input type="number" id="n_clusters" name="n_clusters" class="form-control" value="5" step="1" min="1">
+        </div>
+
+        <div class="form-group  mt-3">
+          <label for="eps">DBSCAN eps</label>
+          <input type="number" id="eps" name="eps" class="form-control" value="0.20" step="0.01" min="0.01" disabled>
+        </div>
+
+        <div class="form-group  mt-3">
+          <label for="min_samples">DBSCAN min_samples</label>
+          <input type="number" id="min_samples" name="min_samples" class="form-control" value="8" step="1" min="1" disabled>
+        </div>
+
+        <div class="form-group  mt-3">
+          <label for="n_caracteristic_answers">Nombre de réponses discriminantes</label>
+          <input type="number" id="n_caracteristic_answers" name="n_caracteristic_answers" class="form-control" value="5" step="1" min="1">
+        </div>
+
+        <button class="btn btn-primary mt-3" type="submit">Calculer</button>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  var nbClustersInput = document.getElementById('n_clusters');
+  var nbAnswersInput = document.getElementById('n_caracteristic_answers');
+  var checkbox = document.getElementById('update_csv_clusters_proj');
+  var clusteringAlgorithmSelect = document.getElementById('clustering_algorithm');
+  var epsInput = document.getElementById('eps');
+  var minSamplesInput = document.getElementById('min_samples');
+
+  function setInputState(input, enabled) {
+      if (enabled) {
+          input.classList.remove('disabled');
+          input.disabled = false;
+      } else {
+          input.classList.add('disabled');
+          input.disabled = true;
+      }
+  }
+
+  function updateClusteringFieldsState() {
+      var isCsvUpdateEnabled = checkbox.checked;
+      var isDbscan = clusteringAlgorithmSelect.value === 'dbscan';
+
+      setInputState(clusteringAlgorithmSelect, isCsvUpdateEnabled);
+      setInputState(nbAnswersInput, isCsvUpdateEnabled);
+      setInputState(nbClustersInput, isCsvUpdateEnabled && !isDbscan);
+      setInputState(epsInput, isCsvUpdateEnabled && isDbscan);
+      setInputState(minSamplesInput, isCsvUpdateEnabled && isDbscan);
+  }
+
+  // Griser les champ de saisie si la MAJ des clusters est désactivée
+  checkbox.addEventListener('change', updateClusteringFieldsState);
+  clusteringAlgorithmSelect.addEventListener('change', updateClusteringFieldsState);
+
+  updateClusteringFieldsState();
+</script>

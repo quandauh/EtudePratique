@@ -1,0 +1,189 @@
+<style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+    th, td {
+        border: 1px solid black;
+        padding: 8px;
+        text-align: left;
+    }
+    th {
+        background-color: #f2f2f2;
+    }
+    .yes-button, .no-button, .opposite-button {
+        padding: 5px 10px;
+        border: none;
+        cursor: pointer;
+        color: white;
+    }
+    .yes-button {
+        background-color: green;
+    }
+    .no-button {
+        background-color: red;
+    }
+    .opposite-button {
+        background-color: orange;
+    }
+
+    .validate-all-yes, .validate-all-no, .opposite-button {
+        padding: 10px 15px;
+        margin: 10px 5px;
+        border: 2px solid transparent;
+        border-radius: 5px;
+        cursor: pointer;
+        color: white;
+        font-size: 14px;
+    }
+    .validate-all-yes {
+        background-color: rgb(20, 177, 12);
+    }
+    .validate-all-no {
+        background-color: rgb(203, 8, 8);
+    }
+
+    .opposite-button {
+        background-color: orange;
+    }
+</style>
+
+{% extends "admin/admin_base.html" %}
+
+{% block title %}Samsam{% endblock %}
+{% block content %}
+<head>
+  <title>Imputation Suggestions</title>
+  <style>
+      table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-bottom: 20px;
+      }
+      th, td {
+          border: 1px solid black;
+          padding: 8px;
+          text-align: left;
+      }
+      th {
+          background-color: #f2f2f2;
+      }
+      .yes-button, .no-button, .opposite-button {
+          padding: 5px 10px;
+          border: none;
+          cursor: pointer;
+          color: white;
+      }
+      .yes-button {
+          background-color: green;
+      }
+      .no-button {
+          background-color: red;
+      }
+      .opposite-button {
+          background-color: orange;
+      }
+  </style>
+</head>
+<body>
+
+  <h2>Imputation Suggestions</h2>
+    {% for question, personnages in questions.items %}
+        {{ question }} :<br>
+        {% for personnage in personnages %}
+        <tr>
+            <td>{{ personnage.name }}</td>
+        {% endfor %}
+        <br>
+        <br>
+    {% endfor %}
+    {% for personnage, suggestions in suggestions_par_personnage.items %}
+    <div class="suggestion_div">
+        <h4 class="character_name">{{ personnage.name }} :</h4><br>
+        <button class="validate-button validate-all-yes" value="y">Validate All Yes</button><br>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Question</th>
+                    <th>Remove</th>
+                </tr>
+            </thead>
+            {% for suggestion in suggestions %}
+            <tr>
+                <td>{{ suggestion }}</td>
+                <td>
+                    <button class="remove-character" data-character="{{ suggestion }}" data-question="{{ suggestion }}" style="background: none; border: none; color: red; font-size: 30px; cursor: pointer;">&times;</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    <br>
+{% endfor %}
+<script>
+    // Add a click event listener to the document to listen for clicks on the remove-character buttons
+    document.addEventListener("click", function (event) {
+        if (event.target.classList.contains("remove-character")) {
+            // Find the closest table row and remove it
+            const row = event.target.closest("tr");
+            if (row) {
+                row.remove();
+            }
+        }
+    });
+
+
+    // Add a click event listener to the document to listen for clicks on the validate-all-yes buttons
+    document.addEventListener("click", function (event) {
+        if (event.target.classList.contains("validate-button")) {
+            // Find the next sibling table
+            var table = event.target.nextElementSibling;
+            while(table && !table.classList.contains("table")) {
+                table = table.nextElementSibling;
+            }
+            if (table && table.classList.contains("table")) {
+                const rows = table.querySelectorAll("tbody tr");
+                var questions = [];
+                rows.forEach(row => {
+                    const cell = row.querySelector("td");
+                    if (cell) {
+                        questions.push(cell.innerText);
+                    }
+                });
+                // Build the dictionnary to send to the server
+                var character = table.previousElementSibling;
+                while(character && !character.classList.contains("character_name")) {
+                    character = character.previousElementSibling;
+                }
+                if (character && character.classList.contains("character_name")) {
+                    character = character.innerText;
+                    var data = {
+                        "character": character,
+                        "suggestions": questions,
+                        "validate": event.target.value,
+                    };
+                    fetch("{% url 'admin:update_database_alternative' %}", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": "{{ csrf_token }}"
+                        },
+                        body: JSON.stringify(data)
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            console.log("Success");
+                            // Remove the div suggestion_div linked to that question
+                            table.closest(".suggestion_div").remove();
+                        } else {
+                            console.log("Error");
+                        }
+                    });
+                }
+            }
+        }
+    });
+</script>
+</body>
+{% endblock %}

@@ -1,0 +1,18 @@
+[Unit]
+Description=Celery Service
+After=network.target
+
+[Service]
+Type=forking
+User=www-data
+Group=www-data
+RuntimeDirectory=celery
+Environment="PATH=/var/www/devinsa.insa-rennes.fr/.venv/bin/"
+WorkingDirectory=/var/www/devinsa.insa-rennes.fr/src/
+ExecStart=/bin/sh -c '/var/www/devinsa.insa-rennes.fr/.venv/bin/celery -A devinsa multi start worker1'
+ExecStop=/bin/sh -c '/var/www/devinsa.insa-rennes.fr/.venv/bin/celery multi stopwait_worker1'
+ExecReload=/bin/sh -c '/var/www/devinsa.insa-rennes.fr/.venv/bin/celery -A devinsa multi restart worker1'
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

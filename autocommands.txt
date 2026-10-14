@@ -1,0 +1,22 @@
+sudo add-apt-repository ppa:deadsnakes/ppa -y
+sudo apt update
+sudo apt install -y curl git python3.11 python3.11-dev python3-pip mariadb-server mariadb-client libmariadb-dev-compat libmariadb-dev redis-server pkg-config build-essential python3-celery
+sudo systemctl start mariadb
+sudo mariadb -e "CREATE DATABASE devinsa;"
+sudo mariadb -e "CREATE USER 'devinsa'@'localhost' IDENTIFIED BY 'devinsa\!';"
+sudo mariadb -e "GRANT ALL ON devinsa.* TO 'devinsa'@localhost;"
+sudo mariadb -e "FLUSH PRIVILEGES;"
+sudo mariadb -e "sudo mariadb -D devinsa < sauvegarde.sql"
+curl -sSL https://install.python-poetry.org | python3.11 -
+export PYTHON_KEYRING_BACKEND=keyring.backends.null.Keyring
+/home/ubuntu/.local/bin/poetry self add poethepoet[poetry_plugin]
+/home/ubuntu/.local/bin/poetry config virtualenvs.in-project true
+export GITLAB_TOKEN="kul2xxroO-P8Z4CPBZgD3286MQp1OjI4bAk.01.0z0qvpbbo"
+git clone "https://oauth2:${GITLAB_TOKEN}@gitlab.insa-rennes.fr/Christian.Raymond/devinsa.git" devinsa
+cd devinsa
+git checkout dev-2025-2026
+/home/ubuntu/.local/bin/poetry env use 3.11
+/home/ubuntu/.local/bin/poetry install
+echo 'export PATH="$HOME/.local/bin:$HOME/.local/share/pypoetry/venv/bin:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+/home/ubuntu/.local/bin/poetry run python -m spacy download fr_core_news_sm

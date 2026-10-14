@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Rapport{% endblock %}
+
+{% block content %}
+  <div>
+    <h4 class="mt-3 fw-bold">{{ item.name }}</h4>
+    <table class="table table-striped caption-top">
+      <caption>Rapport de fin de partie</caption>
+      <thead>
+      <tr>
+        <th rowspan="2">Question posée</th>
+        <th rowspan="1">Ta réponse</th>
+        <th rowspan="1">Ma réponse</th>
+      </tr>
+      </thead>
+      <tbody>
+      {% for answer in report %}
+        <tr>
+          <td>{{ answer.title }}</td>
+          <td
+            {% if answer.given != answer.expected and answer.expected != '?' %}style="font-weight:bold; color: red"{% endif %}>{{ answer.given }}</td>
+          <td
+            {% if answer.given != answer.expected and answer.expected != '?' %}style="font-weight:bold; color: forestgreen "{% endif %}>{{ answer.expected }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <a class="btn btn-primary mb-3" href="{% url "app:result" %}">Retour</a>
+  </div>
+{% endblock %}

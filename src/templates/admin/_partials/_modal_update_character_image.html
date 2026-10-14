@@ -1,0 +1,66 @@
+<div id="modal-image" class="modal fade" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Mettre à jour l'image</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="autoEncoderForm" action="{% url "admin:update_character_image" current_item.id %}" method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="use_wikipedia_image">Utiliser l'image Wikipédia</label>
+            <br>
+            <input type="checkbox" id="use_wikipedia_image" name="use_wikipedia_image">
+        </div>
+        
+        <div class="form-group">
+            <label for="image_url">URL de l'image</label>
+            <input type="text" id="image_url" name="image_url" class="form-control" value="{{ current_item.image }}">
+        </div>
+        
+        <br> <!-- Ajout de l'espace entre le champ de saisie et l'image -->
+        
+        <img id="image-preview" src="{{ current_item.image }}" alt="Prévisualisation de l'image" style="max-width: 100%; display: block;"><br>
+        
+        <button class="btn btn-primary mt-3" type="submit">Valider</button>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</div>  
+
+<script>
+  var imageUrlInput = document.getElementById('image_url');
+  var imagePreview = document.getElementById('image-preview');
+  var checkbox = document.getElementById('use_wikipedia_image');
+
+  // Prévisualisation de l'image rentrée
+  imageUrlInput.addEventListener('input', function() {
+      // Mettre à jour l'attribut src de l'élément img avec la nouvelle URL saisie
+      imagePreview.src = this.value;
+      // Afficher l'élément img s'il y a une URL saisie, sinon le cacher
+      if (this.value) {
+          imagePreview.style.display = 'block';
+      } else {
+          imagePreview.style.display = 'none';
+      }
+  });
+
+  // Griser le champ de saisie d'URL au chargement de la page/si la case est cochée
+
+  checkbox.addEventListener('change', function() {
+      // Si la case à cocher est cochée
+      if (this.checked) {
+          // Désactiver le champ de saisie en ajoutant la classe "disabled"
+          imageUrlInput.classList.add('disabled');
+          imageUrlInput.disabled = true;
+      } else {
+          // Sinon, activer le champ de saisie en supprimant la classe "disabled"
+          imageUrlInput.classList.remove('disabled');
+          imageUrlInput.disabled = false;
+      }
+  });
+</script>

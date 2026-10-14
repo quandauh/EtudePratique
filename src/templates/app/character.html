@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Personnage{% endblock %}
+
+
+{% block content %}
+  <form action="{% url "app:character" %}" class="flex-center" method="post">
+    {% csrf_token %}
+    <div class="row align-items-center vh-60 gx-5">
+      <div class="col d-none d-lg-block align-self-end">
+        <img src="{% static "img/albert.png" %}" alt="Albert Einstein">
+      </div>
+      {% if itemform %}
+        <div class="col vw-90 mx-3 px-md-5 py-3 rounded-5 shadow-lg border border-secondary-subtle">
+          <h3 class="h-6l mb-3">Tu es trop fort pour moi...<br>A qui pensais-tu ?</h3>
+          <div class="form-floating">
+            <input class="form-control bg-secondary-subtle" id="id_name" maxlength="255"
+                   name="name" placeholder="Personnage" required type="text">
+            <label for="id_name" id="label_name">Nom du personnage :</label>
+          </div>
+          <button class="btn btn-primary btn-lg mt-4" name="character_sent" type="submit">Valider</button>
+        </div>
+      {% elif items %}
+        <div class="col vw-90 mx-3 px-md-5 py-3 rounded-5 shadow-lg border border-secondary-subtle">
+          <h3 class="h-6l mb-5">
+            Est-ce que ton personnage est présent dans cette liste ?
+          </h3>
+          <select class="form-select d-inline-table w-100" multiple name="closest_items" size="7"
+                  aria-label="closest_items">
+            {% for item in items %}
+              <option value="{{ item.id }}">{{ item.name }}</option>
+            {% endfor %}
+          </select>
+          <button class="btn btn-secondary btn-lg mt-3" name="existing_name" type="submit">
+            Choisir ce personnage
+          </button>
+          <button class="btn btn-primary btn-lg mt-3" name="new_name" type="submit">
+            Ajouter le personnage "{{ name }}"
+          </button>
+        </div>
+      {% endif %}
+      <div class="col d-none d-lg-block align-self-start">
+        <img src="{% static "img/avatar.png" %}" alt="avatar">
+      </div>
+    </div>
+  </form>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "admin/admin_base.html" %}
+{% load static %}
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<head>
+    <title>Descriptions Suggestions</title>
+</head>
+<body>
+
+    <h1>Suggestions sur des Descriptions</h1>
+    <p>Cette page vous permet de visualiser les suggestions d'imputation sur les descriptions.
+        <br>
+        Les suggestions sont basées sur les mots clés présents dans les descriptions des personnages. On cherche des correspondances entre les questions et les descriptions. 
+        Il n'y a que des suggestions de réponses "Oui".
+        <br>
+        Vous pouvez définir un seuil de nombre de personnages dont la description doit contenir le mot clé (ex : si le seuil est de 3, alors il faut que le mot clé soit présent dans la description d'au moins 3 personnages pour que les suggestions soient affichées).
+    </p>
+    
+    <form action="{% url "admin:description_based_suggestions" %}" class="d-flex flex-column align-items-center" method="post">
+        {% csrf_token %}
+        <label for="characters_threshold" id="label_num">Nombre de personnages minimum dont la description contient le mot clé :</label>
+        <input min="1" id="characters_threshold" name="characters_threshold" required type="number" value="{{ characters_threshold }}" aria-label="Nombre de personnages minimum dont la description contient le mot clé">
+        <button class="btn btn-primary mt-3" type="submit" id="show-suggestions">Calculer les suggestions</button>
+    </form>
+    {% include "./_partials/_modal_suggestions_alternative.html" %}
+</body>
+{% endblock %}
+
+
+{% block script %}
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta3/dist/css/bootstrap-select.min.css">
+
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta3/dist/js/bootstrap-select.min.js"></script>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends "admin/admin_base.html" %}
+{% load static %}
+
+{% block title %}Export{% endblock %}
+
+{% block content %} 
+        <table class="table table-striped">
+            <thead>
+              <tr>
+                <td>Données à exporter</td>
+                <td>Action</td>
+              </tr>
+            </thead> 
+            <tbody>
+                <tr>
+                    <td>Vecteurs personnages</td>
+                    <td><a href="{% static 'data/list_character.csv' %}" class="btn btn-success btn-small">Télécharger</a></td>
+                </tr>
+                <tr>
+                    <td>Liste des questions</td>
+                    <td><a href="{% static 'data/list_question.csv' %}" class="btn btn-success btn-small">Télécharger</a></td>
+                </tr>
+                <tr>
+                    <td>Liste des réponses</td>
+                    <td><a href="{% static 'data/list_answer.csv' %}" class="btn btn-success btn-small">Télécharger</a></td>
+                </tr>
+                <tr>
+                    <td>Projection de la visualisation</td>
+                    <td><a href="{% static 'data/visualisation.csv' %}" class="btn btn-success btn-small">Télécharger</a></td>
+                </tr>
+                <tr>
+                    <td>Dump Base de Données (backup)</td>
+                    <td>
+                        <form id="dumpForm" action="{% url 'admin:download_backup' %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success btn-small">Télécharger</button>
+                        </form>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    
+        <script>
+            document.getElementById("dumpForm").addEventListener("submit", function(event) {
+                event.preventDefault(); // Empêche la soumission normale du formulaire
+                var form = event.target;
+                var xhr = new XMLHttpRequest();
+                xhr.open(form.method, form.action, true);
+                xhr.responseType = 'blob'; // Indique que la réponse sera un fichier binaire
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        // Crée un lien temporaire pour télécharger le fichier
+                        var url = window.URL.createObjectURL(xhr.response);
+                        var a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'backup.sql'; // Nom du fichier téléchargé
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                    }
+                };
+                xhr.send(new FormData(form));
+            });
+            </script>
+{% endblock %}

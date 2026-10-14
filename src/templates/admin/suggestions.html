@@ -1,0 +1,292 @@
+{% extends "admin/admin_base.html" %}
+{% load static %}
+
+{% block title %}Suggestions Réponses{% endblock %}
+
+{% block content %}
+    <p>Cette page se base sur l'autoencodeur pour suggérer des réponses aux questions. 
+      L'autoencodeur est entraîné sur les réponses (oui ou non) des personnages aux questions et cherche à les reproduire fidèlement. 
+      Les suggestions sont les réponses à une question générées par l'autoencodeur pour les personnages n'ayant pas de réponse à cette question (double 0 en entrée).
+    <br>
+      L'autoencodeur fonctionne grâce à une couche cachée de neurones qui apprend à représenter les données d'entrée dans un espace de dimension réduite, puis les reconstruit dans l'espace d'origine à partir de cette représentation.</p>
+    <div class="d-flex flex-wrap gap-2 align-items-center mb-4">
+      <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-train">Calculer l'autoencodeur</button>
+      <form action="{% url 'admin:purge_autoencoder_training_history' %}" method="post" class="m-0">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-danger">Purger l'historique des modèles</button>
+      </form>
+    </div>
+    <h3>Entraînement de l'auto-encodeur</h3>
+    <p>On doit d'abord entraîner l'autoencodeur pour qu'il puisse générer des suggestions. 
+      À chaque itération de l'entraînement, l'autoencodeur reproduit le vecteur de réponses des personnages et calcule l'erreur de reconstruction. 
+     Il prend en compte cette erreur pour l'itération suivante, afin d'améliorer sa performance. 
+      On peut choisir le nombre d'itérations, ainsi que la taille de la couche cachée de l'autoencodeur.</p>
+      <h3>Historique des entraînements</h3>
+      <p>Les paramètres et les évaluations finales de chaque entraînement sont conservés ici. Les fichiers de poids sont également archivés et peuvent être utilisés pour calculer les suggestions.</p>
+      {% if autoencoder_training_runs %}
+        <div class="table-responsive mb-4">
+          <table class="table table-striped align-middle">
+            <thead>
+                <tr>
+                <th>Date <span class="info-icon" tabindex="0" data-info="Date et heure de lancement de l'entraînement.">i</span></th>
+                <th>Epochs <span class="info-icon" tabindex="0" data-info="Nombre de passages complets sur le jeu de données pendant l'entraînement.">i</span></th>
+                <th>Taille cachée <span class="info-icon" tabindex="0" data-info="Dimension de la représentation compressée apprise par l'autoencodeur.">i</span></th>
+                <th>Fichier <span class="info-icon" tabindex="0" data-info="Nom demandé pour les poids du modèle. Un fichier archivé unique est conservé pour le réutiliser.">i</span></th>
+                <th>Seuil <span class="info-icon" tabindex="0" data-info="Score minimal requis pour transformer une prédiction du modèle en suggestion oui/non.">i</span></th>
+                <th>Min parties <span class="info-icon" tabindex="0" data-info="Nombre minimal de parties jouées pour inclure un personnage dans le calcul des suggestions.">i</span></th>
+                <th>Max parties <span class="info-icon" tabindex="0" data-info="Nombre maximal de parties jouées pour inclure un personnage dans le calcul des suggestions.">i</span></th>
+                <th>Calcul <span class="info-icon" tabindex="0" data-info="Lance le calcul de suggestions avec les poids archivés de cette ligne et les paramètres saisis.">i</span></th>
+                <th>Loss finale <span class="info-icon" tabindex="0" data-info="Erreur de reconstruction observée à la dernière epoch. Plus elle est basse, plus le modèle reproduit les vecteurs d'entraînement.">i</span></th>
+                <th>False positives <span class="info-icon" tabindex="0" data-info="Nombre final de sorties reconstruites comme positives alors qu'elles sont négatives dans les données d'entraînement.">i</span></th>
+                <th>False negatives <span class="info-icon" tabindex="0" data-info="Nombre final de sorties reconstruites comme négatives alors qu'elles sont positives dans les données d'entraînement.">i</span></th>
+                <th>Durée <span class="info-icon" tabindex="0" data-info="Temps total mesuré pour l'entraînement.">i</span></th>
+                <th class="training-history-actions">Suppression <span class="info-icon" tabindex="0" data-info="Supprime cette entrée d'historique et son fichier de poids archivé si disponible.">i</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for run in autoencoder_training_runs %}
+                <tr>
+                  <td>{{ run.created_at|date:"d/m/Y H:i:s" }}</td>
+                  <td>{{ run.nb_epochs }}</td>
+                  <td>{{ run.hidden_size }}</td>
+                  <td>
+                    <code>{{ run.output_file }}</code>
+                    {% if run.is_active_model %}
+                      <span class="badge bg-success ms-2{% if current_mode != 'autoencoder' %} d-none{% endif %}" data-active-model-badge>Modèle actif</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if run.weights_file %}
+                      <form id="compute-suggestions-{{ run.id }}" action="{% url 'admin:compute_suggestions' %}" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="input2" value="{{ run.weights_file }}">
+                        <input type="number" name="input3" class="form-control form-control-sm" value="0.90" step="0.01">
+                      </form>
+                    {% else %}
+                      <input type="number" class="form-control form-control-sm" value="0.90" step="0.01" disabled>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <input {% if run.weights_file %}form="compute-suggestions-{{ run.id }}" name="input4"{% else %}disabled{% endif %} type="number" class="form-control form-control-sm" value="5" step="1">
+                  </td>
+                  <td>
+                    <input {% if run.weights_file %}form="compute-suggestions-{{ run.id }}" name="input5"{% else %}disabled{% endif %} type="number" class="form-control form-control-sm" value="20" step="1">
+                  </td>
+                  <td>
+                    <button {% if run.weights_file %}form="compute-suggestions-{{ run.id }}"{% else %}disabled{% endif %} type="submit" class="btn btn-sm btn-outline-secondary">Calculer</button>
+                  </td>
+                  <td>{{ run.final_loss_display }}</td>
+                  <td>{{ run.final_false_positives_display }}</td>
+                  <td>{{ run.final_false_negatives_display }}</td>
+                  <td>{{ run.total_duration_display }}</td>
+                  <td>
+                    <form action="{% url 'admin:delete_autoencoder_training_run' run.id %}" method="post">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-sm btn-outline-danger">Supprimer</button>
+                    </form>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p>Aucun entraînement enregistré pour le moment.</p>
+      {% endif %}
+      <h3>Choix des questions</h3>
+      <p>Vous pouvez choisir de visualiser les suggestions pour les questions ayant des suggestions de "Oui" ou de "Non". 
+        <br>
+        <br>
+      </p>
+    <div class="row">
+      {% if questions_yes %}
+      <div class="col-md-6">
+        <form action="{% url "admin:suggestions" %}" class="d-flex flex-column align-items-center" method="post">
+          {% csrf_token %}
+          <label for="id_question_yes" id="label_item_yes">Choisissez une question avec des suggestions de OUI:</label>
+          <select id="id_question_yes" name="id_question" class="selectpicker" data-live-search="true" data-width="100%">
+            {% for question in questions_yes %}
+              <option value="{{ question.id }}">{{ question.title }}</option>
+            {% endfor %}
+          </select>
+          <input type="hidden" name="suggestion_type" value="y">
+          <button class="btn btn-primary mt-3" type="submit">Valider</button>
+        </form>
+      </div>
+      {% endif %}
+
+      {% if questions_no %}
+      <div class="col-md-6">
+        <form action="{% url "admin:suggestions" %}" class="d-flex flex-column align-items-center" method="post">
+          {% csrf_token %}
+          <label for="id_question" id="label_item">Choisissez une question avec des suggestions de NON</label>
+          <select id="id_question" name="id_question" class="selectpicker" data-live-search="true" data-width="100%">
+            {% for question in questions_no %}
+              <option value="{{ question.id }}">{{ question.title }}</option>
+            {% endfor %}
+          </select>
+          <input type="hidden" name="suggestion_type" value="n">
+          <button class="btn btn-primary mt-3" type="submit">Valider</button>
+        </form>
+      </div>
+      {% endif %}
+
+    </div>
+   {% if current_question %}
+      <div class="d-flex flex-column my-3">
+        <h3>Suggestions pour : {{ current_question.title }}</h3>
+        <br>
+        <h3>Avec réponse "{% if request.session.suggestion_type == "n" %}Non{% else %}Oui{% endif %}"</h3>
+        <form action="{% url "admin:validate_suggestions" %}" method="post">
+          {% csrf_token %}
+          <input type="hidden" id="question-id" name="question-id" value="{{ current_question.id }}">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <td>Personnage</td>
+                <td>Suggestion</td>
+                <td colspan="3">Validation</td>
+              </tr>
+            </thead> 
+            <tbody>
+              {% for suggestion in suggestions %}
+                <tr>
+                  <td>{{ suggestion.item.name }}</td>
+                  <td>{% if suggestion.reponse == "n" %}Non{% else %}Oui{% endif %} </td>
+                  <td>
+                    <input  class="form-check-input btn-check" 
+                            type="radio" 
+                            value="y" 
+                            id="checked-{{suggestion.id}}-y" 
+                            name="checked-{{suggestion.id}}" 
+                            {% if suggestion.reponse == "y" %} checked {% endif %}>
+                    <label class="btn btn-outline-success" for="checked-{{suggestion.id}}-y">Oui</label>
+                  </td>
+
+                  <td>
+                    <input class="form-check-input btn-check" type="radio" value="n" id="checked-{{suggestion.id}}-n" name="checked-{{suggestion.id}}" {% if suggestion.reponse == 'n' %} checked {% endif %}>
+                    <label class="btn btn-outline-danger" for="checked-{{suggestion.id}}-n">Non</label>
+                  </td>
+                  <td>
+                    <input class="form-check-input btn-check" type="radio" value="?" id="checked-{{suggestion.id}}-?" name="checked-{{suggestion.id}}">
+                    <label class="btn btn-outline-secondary" for="checked-{{suggestion.id}}-?">?</label>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <button class="btn btn-primary mt-3" type="submit">Valider</button>
+        </form>
+      </div>
+    {% endif %}
+
+  
+
+  <!-- entrainer Auto Encodeur -->
+  {% include "admin/_partials/_modal_train_encoder.html" %}
+
+
+{% endblock %}
+
+{% block stylesheet %}
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta3/dist/css/bootstrap-select.min.css">
+  <link rel="stylesheet" href="{% static 'css/popup.css' %}">
+  <style>
+    .training-history-actions {
+      width: 1%;
+      white-space: nowrap;
+    }
+    .table .form-control-sm {
+      width: 75px;
+      padding: 0.2rem 0.4rem;
+      font-size: 0.8rem;
+    }
+    .info-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      width: 1rem;
+      height: 1rem;
+      margin-left: 0.25rem;
+      border-radius: 50%;
+      border: 1px solid rgba(27, 27, 27, 0.35);
+      color: rgba(27, 27, 27, 0.7);
+      font-size: 0.7rem;
+      font-weight: 700;
+      line-height: 1;
+      text-transform: none;
+      cursor: help;
+    }
+    .info-icon:focus {
+      outline: 2px solid rgba(13, 110, 253, 0.35);
+      outline-offset: 2px;
+    }
+    .info-tooltip {
+      position: fixed;
+      z-index: 3000;
+      max-width: 280px;
+      padding: 0.5rem 0.65rem;
+      border-radius: 6px;
+      background: #1b1b1b;
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 400;
+      line-height: 1.25;
+      text-transform: none;
+      letter-spacing: 0;
+      box-shadow: 0 12px 28px rgba(27, 27, 27, 0.22);
+      pointer-events: none;
+    }
+  </style>
+{% endblock %}
+
+{% block script %}
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta3/dist/js/bootstrap-select.min.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var tooltip = document.createElement("div");
+    tooltip.className = "info-tooltip";
+    tooltip.hidden = true;
+    document.body.appendChild(tooltip);
+
+    function positionTooltip(target) {
+      var rect = target.getBoundingClientRect();
+      tooltip.style.left = Math.max(12, Math.min(rect.left, window.innerWidth - tooltip.offsetWidth - 12)) + "px";
+      tooltip.style.top = Math.max(12, Math.min(rect.bottom + 8, window.innerHeight - tooltip.offsetHeight - 12)) + "px";
+    }
+
+    function showTooltip(target) {
+      var text = target.getAttribute("data-info");
+      if (!text) {
+        return;
+      }
+      tooltip.textContent = text;
+      tooltip.hidden = false;
+      positionTooltip(target);
+    }
+
+    function hideTooltip() {
+      tooltip.hidden = true;
+    }
+
+    document.querySelectorAll(".info-icon").forEach(function (icon) {
+      icon.addEventListener("mouseenter", function () { showTooltip(icon); });
+      icon.addEventListener("focus", function () { showTooltip(icon); });
+      icon.addEventListener("mouseleave", hideTooltip);
+      icon.addEventListener("blur", hideTooltip);
+    });
+  });
+
+  document.addEventListener("devinsa:algorithm-mode", function (event) {
+    var isAutoencoder = event.detail && event.detail.mode === "autoencoder";
+    document.querySelectorAll("[data-active-model-badge]").forEach(function (badge) {
+      badge.classList.toggle("d-none", !isAutoencoder);
+    });
+  });
+</script>
+
+{% endblock %}

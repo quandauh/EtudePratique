@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Accueil{% endblock %}
+
+{% block content %}
+  <div class="flex-center">
+    <img src="{% static "img/devinsa.png" %}" alt="Logo Devinsa">
+    <h3 class="mt-3 mb-5">Pense à un personnage et laisse-toi guider !</h3>
+    <a class="btn btn-primary btn-lg" href="{% url "app:play" %}">Lancer une partie</a>
+  </div>
+{% endblock %}

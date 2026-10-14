@@ -1,0 +1,28 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <h3>Importer poids Auto-encodeur</h3>
+  {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+  {% endif %}
+  {% if success %}
+    <div class="alert alert-success">{{ success }}</div>
+  {% endif %}
+  <form action="{% url 'admin:upload_weights' %}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label for="weights_file" class="form-label">Fichier de poids (.h5)</label>
+      <input class="form-control" type="file" id="weights_file" name="weights_file" accept=".h5">
+    </div>
+
+    <div class="mb-3">
+      <label for="weights_path" class="form-label">Ou chemin (ex: auto_encoder_weights.h5)</label>
+      <input class="form-control" type="text" id="weights_path" name="weights_path" placeholder="auto_encoder_weights.h5">
+    </div>
+
+    <button type="submit" class="btn btn-primary">Envoyer</button>
+    <a href="{% url 'admin:admin_index' %}" class="btn btn-secondary">Annuler</a>
+  </form>
+</div>
+{% endblock %}

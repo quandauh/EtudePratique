@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Je réfléchis...{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center align-items-center vh-100">
+        <div class="col-md-6 text-center">
+            <h1 class="mb-4">Je réfléchis...</h1>
+            <p>Veuillez patienter pendant que je trouve la réponse.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Rediriger vers guess.html après 2 secondes (2000 ms)
+    setTimeout(function(){
+        window.location.href = "{% url 'app:guess' %}";
+    }, 2000);
+</script>
+{% endblock %}

@@ -1,0 +1,481 @@
+{% extends "admin/admin_base.html" %}
+{% load static %}
+
+{% block title %}Maintenance en cours{% endblock %}
+
+{% block font %}
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+{% endblock %}
+
+{% block stylesheet %}
+<style>
+  :root {
+    --maint-run-ink: #151515;
+    --maint-run-shell: #fbf5e8;
+    --maint-run-card: #fffdfa;
+    --maint-run-border: rgba(21, 21, 21, 0.08);
+    --maint-run-muted: rgba(21, 21, 21, 0.64);
+    --maint-run-ok: #216b46;
+    --maint-run-fail: #9f2d24;
+    --maint-run-progress: #d56b38;
+    --maint-run-shadow: rgba(21, 21, 21, 0.12);
+  }
+
+  .maintenance-run-shell {
+    margin: 2.5rem 0 3.5rem;
+    padding: 2rem;
+    border-radius: 28px;
+    background:
+      radial-gradient(circle at top left, rgba(213, 107, 56, 0.2), transparent 30%),
+      linear-gradient(135deg, #fffef9 0%, var(--maint-run-shell) 100%);
+    box-shadow: 0 30px 60px -44px var(--maint-run-shadow);
+  }
+
+  .maintenance-run-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: flex-start;
+    margin-bottom: 1.25rem;
+  }
+
+  .maintenance-run-title {
+    margin: 0;
+    font-family: "Space Grotesk", sans-serif;
+    font-size: clamp(2rem, 2.7vw, 2.7rem);
+    font-weight: 700;
+    color: var(--maint-run-ink);
+  }
+
+  .maintenance-run-subtitle {
+    margin: 0.45rem 0 0;
+    font-family: "Space Grotesk", sans-serif;
+    color: var(--maint-run-muted);
+    max-width: 48rem;
+  }
+
+  .maintenance-run-status {
+    min-width: 220px;
+    padding: 0.9rem 1rem;
+    border-radius: 20px;
+    background: white;
+    border: 1px solid var(--maint-run-border);
+    box-shadow: 0 18px 40px -36px var(--maint-run-shadow);
+  }
+
+  .maintenance-run-status-label {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(21, 21, 21, 0.52);
+  }
+
+  .maintenance-run-status-value {
+    font-family: "IBM Plex Mono", monospace;
+    color: var(--maint-run-ink);
+  }
+
+  .maintenance-run-banner {
+    margin-bottom: 1rem;
+    padding: 1rem 1.2rem;
+    border-radius: 18px;
+    background: rgba(213, 107, 56, 0.1);
+    color: #8d4a28;
+    font-family: "Space Grotesk", sans-serif;
+  }
+
+  .maintenance-run-banner.is-live {
+    background: rgba(213, 107, 56, 0.1);
+    color: #8d4a28;
+  }
+
+  .maintenance-run-banner.is-warning {
+    background: rgba(214, 147, 54, 0.13);
+    color: #87591c;
+  }
+
+  .maintenance-run-banner.is-success {
+    background: rgba(33, 107, 70, 0.12);
+    color: var(--maint-run-ok);
+  }
+
+  .maintenance-run-banner.is-danger {
+    background: rgba(159, 45, 36, 0.12);
+    color: var(--maint-run-fail);
+  }
+
+  .maintenance-run-banner-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+  }
+
+  .maintenance-run-pulse {
+    width: 0.9rem;
+    height: 0.9rem;
+    margin-top: 0.25rem;
+    border-radius: 999px;
+    background: currentColor;
+    box-shadow: 0 0 0 rgba(213, 107, 56, 0.35);
+    animation: maintenance-pulse 1.6s ease-out infinite;
+    flex: 0 0 auto;
+  }
+
+  .maintenance-run-banner.is-success .maintenance-run-pulse,
+  .maintenance-run-banner.is-danger .maintenance-run-pulse {
+    animation: none;
+    opacity: 0.85;
+  }
+
+  .maintenance-run-banner-title {
+    display: block;
+    font-weight: 700;
+  }
+
+  .maintenance-run-banner-note {
+    display: block;
+    margin-top: 0.2rem;
+    opacity: 0.9;
+  }
+
+  .maintenance-run-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.2fr);
+    gap: 1rem;
+  }
+
+  .maintenance-run-card {
+    padding: 1.2rem;
+    border-radius: 22px;
+    background: var(--maint-run-card);
+    border: 1px solid var(--maint-run-border);
+  }
+
+  .maintenance-run-card h2 {
+    margin: 0 0 0.8rem;
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 1.05rem;
+    color: var(--maint-run-ink);
+  }
+
+  .maintenance-run-meta {
+    display: grid;
+    gap: 0.8rem;
+  }
+
+  .maintenance-run-meta-line {
+    padding: 0.85rem 1rem;
+    border-radius: 16px;
+    background: #f8f0df;
+  }
+
+  .maintenance-run-meta-label {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(21, 21, 21, 0.52);
+  }
+
+  .maintenance-run-meta-value {
+    font-family: "IBM Plex Mono", monospace;
+    color: var(--maint-run-ink);
+    word-break: break-word;
+  }
+
+  .maintenance-run-steps {
+    display: grid;
+    gap: 0.9rem;
+  }
+
+  .maintenance-step {
+    border-radius: 18px;
+    border: 1px solid var(--maint-run-border);
+    overflow: hidden;
+    background: white;
+  }
+
+  .maintenance-step-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.95rem 1rem;
+    background: #f8f2e6;
+    font-family: "Space Grotesk", sans-serif;
+  }
+
+  .maintenance-step-status {
+    font-family: "IBM Plex Mono", monospace;
+    text-transform: uppercase;
+    font-size: 0.82rem;
+  }
+
+  .maintenance-step-status.success {
+    color: var(--maint-run-ok);
+  }
+
+  .maintenance-step-status.failed {
+    color: var(--maint-run-fail);
+  }
+
+  .maintenance-step-output {
+    margin: 0;
+    padding: 1rem;
+    background: #121212;
+    color: #f7efdf;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.86rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .maintenance-run-empty {
+    padding: 1rem;
+    border-radius: 16px;
+    background: #f8f0df;
+    font-family: "Space Grotesk", sans-serif;
+    color: var(--maint-run-muted);
+  }
+
+  @keyframes maintenance-pulse {
+    0% {
+      transform: scale(0.96);
+      box-shadow: 0 0 0 0 rgba(213, 107, 56, 0.32);
+    }
+    70% {
+      transform: scale(1);
+      box-shadow: 0 0 0 16px rgba(213, 107, 56, 0);
+    }
+    100% {
+      transform: scale(0.96);
+      box-shadow: 0 0 0 0 rgba(213, 107, 56, 0);
+    }
+  }
+
+  @media (max-width: 960px) {
+    .maintenance-run-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .maintenance-run-shell {
+      padding: 1.35rem;
+    }
+
+    .maintenance-run-top {
+      flex-direction: column;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="maintenance-run-shell">
+  <div class="maintenance-run-top">
+    <div>
+      <h1 class="maintenance-run-title">Deploiement en cours</h1>
+      <p class="maintenance-run-subtitle">
+        Cette page continue de sonder l'etat de la tache. Si le backend ou le worker deviennent temporairement indisponibles
+        pendant leur restart, le navigateur retentera automatiquement des que le suivi repond a nouveau.
+      </p>
+    </div>
+    <div class="maintenance-run-status">
+      <span class="maintenance-run-status-label">Etat global</span>
+      <span id="status-value" class="maintenance-run-status-value">Initialisation</span>
+    </div>
+  </div>
+
+  <div id="poll-banner" class="maintenance-run-banner is-live">
+    <div class="maintenance-run-banner-row">
+      <span class="maintenance-run-pulse" aria-hidden="true"></span>
+      <div>
+        <span class="maintenance-run-banner-title">Connexion au backend en cours...</span>
+        <span class="maintenance-run-banner-note">Le suivi en direct va se connecter automatiquement des que la tache repond.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="maintenance-run-grid">
+    <section class="maintenance-run-card">
+      <h2>Contexte</h2>
+      <div class="maintenance-run-meta">
+        <div class="maintenance-run-meta-line">
+          <span class="maintenance-run-meta-label">Identifiant de tache</span>
+          <span class="maintenance-run-meta-value">{{ task_id }}</span>
+        </div>
+        <div class="maintenance-run-meta-line">
+          <span class="maintenance-run-meta-label">Service cible</span>
+          <span class="maintenance-run-meta-value">{{ service_name }}</span>
+        </div>
+        <div class="maintenance-run-meta-line">
+          <span class="maintenance-run-meta-label">Depot</span>
+          <span class="maintenance-run-meta-value">{{ repo_dir }}</span>
+        </div>
+        <div class="maintenance-run-meta-line">
+          <span class="maintenance-run-meta-label">Etape courante</span>
+          <span id="current-step" class="maintenance-run-meta-value">En attente</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="maintenance-run-card">
+      <h2>Journal des commandes</h2>
+      <div id="steps" class="maintenance-run-steps">
+        <div class="maintenance-run-empty">Aucune sortie pour le moment.</div>
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const statusUrl = "{% url 'admin:maintenance_status' task_id %}";
+    const serviceName = "{{ service_name|escapejs }}";
+    const celeryServiceName = "{{ celery_service_name|escapejs }}";
+    const statusValue = document.getElementById("status-value");
+    const currentStep = document.getElementById("current-step");
+    const pollBanner = document.getElementById("poll-banner");
+    const stepsContainer = document.getElementById("steps");
+    let stopped = false;
+    let lastKnownStep = "";
+    let restartWindow = false;
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;");
+    }
+
+    function renderSteps(steps) {
+      if (!steps || !steps.length) {
+        stepsContainer.innerHTML = '<div class="maintenance-run-empty">Aucune sortie pour le moment.</div>';
+        return;
+      }
+
+      function translateStepStatus(status) {
+        if (status === "success") {
+          return "succes";
+        }
+        if (status === "failed") {
+          return "echec";
+        }
+        return status;
+      }
+
+      stepsContainer.innerHTML = steps.map(function (step) {
+        return `
+          <article class="maintenance-step">
+            <div class="maintenance-step-head">
+              <div>
+                <strong>${escapeHtml(step.label)}</strong><br>
+                <code>${escapeHtml(step.command)}</code>
+              </div>
+              <span class="maintenance-step-status ${escapeHtml(step.status)}">${escapeHtml(translateStepStatus(step.status))}</span>
+            </div>
+            <pre class="maintenance-step-output">${escapeHtml(step.output)}</pre>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function isTerminal(statusText) {
+      return statusText.startsWith("Succes") || statusText.startsWith("Echec");
+    }
+
+    function isRestartStep(stepText) {
+      const step = (stepText || "").toLowerCase();
+      return (
+        step.includes("redemarrage du backend") ||
+        step.includes("verification du backend") ||
+        step.includes("redemarrage du worker celery") ||
+        step.includes("verification du worker celery") ||
+        step.includes("preparation du redemarrage du worker celery")
+      );
+    }
+
+    function setBanner(kind, title, note) {
+      pollBanner.className = "maintenance-run-banner is-" + kind;
+      pollBanner.innerHTML = `
+        <div class="maintenance-run-banner-row">
+          <span class="maintenance-run-pulse" aria-hidden="true"></span>
+          <div>
+            <span class="maintenance-run-banner-title">${escapeHtml(title)}</span>
+            <span class="maintenance-run-banner-note">${escapeHtml(note)}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    async function pollStatus() {
+      if (stopped) {
+        return;
+      }
+
+      try {
+        const response = await fetch(statusUrl, { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error("HTTP " + response.status);
+        }
+
+        const data = await response.json();
+        statusValue.textContent = data.status || "En attente";
+        currentStep.textContent = data.current_step || "Aucune";
+        lastKnownStep = data.current_step || lastKnownStep;
+        if (isRestartStep(data.current_step)) {
+          restartWindow = true;
+          const serviceLabel = data.current_step && data.current_step.toLowerCase().includes("celery")
+            ? celeryServiceName
+            : serviceName;
+          setBanner(
+            "warning",
+            "Redemarrage de " + serviceLabel + " en cours",
+            "Cette etape peut prendre 1 a 2 minutes. C'est normal si le backend devient temporairement indisponible."
+          );
+        } else if (data.current_step) {
+          setBanner("live", "Execution : " + data.current_step, "Le suivi continue automatiquement.");
+        } else {
+          setBanner("live", "Backend joignable", "Attente de la prochaine mise a jour de la tache.");
+        }
+        renderSteps(data.steps || []);
+
+        if (isTerminal(data.status || "")) {
+          stopped = true;
+          setBanner(
+            data.status.startsWith("Succes") ? "success" : "danger",
+            data.status,
+            data.status.startsWith("Succes")
+              ? "Le deploiement est termine."
+              : "La sequence s'est arretee sur une erreur. Verifiez la sortie de commande ci-dessous."
+          );
+          return;
+        }
+      } catch (error) {
+        if (restartWindow || isRestartStep(lastKnownStep)) {
+          setBanner(
+            "warning",
+            "Toujours en cours de redemarrage",
+            "Le service en cours de redemarrage peut rester indisponible pendant 1 a 2 minutes. Gardez cette page ouverte, le suivi reprendra automatiquement."
+          );
+        } else {
+          setBanner(
+            "warning",
+            "Backend temporairement indisponible",
+            "Nouvelle tentative automatique en cours. Pas besoin de recharger la page."
+          );
+        }
+      }
+
+      window.setTimeout(pollStatus, 2000);
+    }
+
+    pollStatus();
+  });
+</script>
+{% endblock %}
