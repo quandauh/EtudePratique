@@ -1,7 +1,6 @@
 from django.core.management.base import BaseCommand, CommandParser
 from app.models import Item
-from app.management.commands.fetch_images_url import get_wikipedia_name
-from app.utilities.wikipedia_scraper import WikipediaImageScraper, ScrapeResult
+from app.utilities.wikipedia_scraper import WikipediaImageScraper
 import argparse
 import time
 
@@ -28,35 +27,19 @@ class Command(BaseCommand):
         imageCount = 0
 
         for index, item in enumerate(items, start=1):
-            result = scrape_item(scraper, item.name)
+            image = scraper.find_image(item.name)
             progress = f"[{index}/{len(items)}]"
 
-            if result is None:
-                print(f"{progress} Page not found for {item.name}")
-            elif result.is_disambiguation:
-                print(f"{progress} Disambiguation page for {item.name}")
-            elif result.image_url is None:
-                print(f"{progress} No image for {item.name}")
+            if image is None:
+                print(f"{progress} No image found for {item.name}")
             else:
                 print(f"{progress} Image found for {item.name}")
                 imageCount += 1
 
                 if not options["dry_run"]:
-                    item.image = result.image_url
+                    item.image = image
                     item.save()
 
             time.sleep(options["delay"])
 
         print(f"Fin du scraping des images : {imageCount} / {len(items)} trouvées")
-
-
-def scrape_item(scraper: WikipediaImageScraper, itemName: str) -> ScrapeResult | None:
-    result = scraper.scrape(itemName)
-    if result is not None and result.image_url and not result.is_disambiguation:
-        return result
-
-    shortName = get_wikipedia_name(itemName)
-    if shortName and shortName != itemName:
-        return scraper.scrape(shortName) or result
-
-    return result

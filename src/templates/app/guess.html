@@ -15,7 +15,7 @@
         <h3 class="mb-4">J'ai trouvé !</h3>
         <h3 class="mb-5">Je pense à {{ item.name }}</h3>
         {% if item.image %}
-          <img class="mb-5" src="{{item.image}}" alt="{{ item.name }}" style="max-height: 400px;">
+          <img class="d-block mx-auto mb-5 img-fluid rounded-4" src="{{ item.image }}" alt="{{ item.name }}" style="max-height: 400px;">
         {% endif %}
         <div class="d-flex justify-content-evenly">
           <button class="btn btn-primary btn-lg" name="choice" type="submit" value="y">Oui</button>

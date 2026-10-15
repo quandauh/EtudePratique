@@ -6,6 +6,7 @@ from app.forms import ItemForm, QuestionForm
 from app.models import Answer, Item, Question, Tree, PlayerAnswer, Report
 from app.utilities.utilities import search_best_item, search_best_items, select_liste, report_game, save_game, get_closest_questions, \
     get_closest_items, search_best_item_autoencoder, search_best_items_autoencoder
+from app.utilities.wikipedia_scraper import WikipediaImageScraper
 
 
 def index(request: HttpRequest) -> HttpResponse:
@@ -156,6 +157,7 @@ def guess(request: HttpRequest | WSGIRequest) -> HttpResponse:
         # Vérification si l'utilisateur n'a fait que passer
         if result_item > -1 and request.session.get("depth", None):
             item = Item.objects.get(id=result_item)
+            add_missing_image(item)
             request.session["item"] = item.id
             return render(request, "app/guess.html", {"item": item})
 
@@ -194,6 +196,16 @@ def guess(request: HttpRequest | WSGIRequest) -> HttpResponse:
             else:
                 return redirect("app:character")
     return redirect("app:index")
+
+
+def add_missing_image(item: Item) -> None:
+    if item.image and item.image.startswith("https://"):
+        return
+
+    image = WikipediaImageScraper().find_image(item.name)
+    if image is not None:
+        item.image = image
+        item.save()
 
 
 def result(request: HttpRequest) -> HttpResponse:

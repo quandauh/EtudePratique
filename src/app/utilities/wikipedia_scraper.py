@@ -60,6 +60,18 @@ class WikipediaImageScraper:
         self.session = requests.Session()
         self.session.headers["User-Agent"] = USER_AGENT
 
+    def find_image(self, name: str) -> str | None:
+        names = [name]
+        if short_name(name) != name:
+            names.append(short_name(name))
+
+        for candidate in names:
+            result = self.scrape(candidate)
+            if result is not None and result.image_url and not result.is_disambiguation:
+                return result.image_url
+
+        return None
+
     def scrape(self, name: str) -> ScrapeResult | None:
         response = self.get(f"{self.base_url}/wiki/{quote(name.replace(' ', '_'))}")
 
@@ -92,6 +104,10 @@ class WikipediaImageScraper:
             return None
 
         return response
+
+
+def short_name(name: str) -> str:
+    return re.split(r"[(,;:|]", name)[0].strip()
 
 
 def clean_image_url(url: str) -> str:
